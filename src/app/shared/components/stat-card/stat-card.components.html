@@ -1,0 +1,14 @@
+ <div class="stat-card">
+      <div class="stat-icon" [style.background]="iconBg" [style.color]="iconColor">
+        <i class="bi {{ icon }}"></i>
+      </div>
+      <div class="stat-value" [style.color]="valueColor || 'var(--primary)'">{{ value }}</div>
+      <div class="stat-label">{{ label }}</div>
+      @if (trend) {
+        <div class="stat-trend" [style.color]="trendColor || 'var(--success)'">
+          <i class="bi {{ trendIcon || 'bi-arrow-up-right' }}"></i>
+          {{ trend }}
+        </div>
+      }
+      <i class="bi {{ icon }} stat-bg-icon"></i>
+    </div>

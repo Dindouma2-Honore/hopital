@@ -1,0 +1,458 @@
+<div class="page-enter">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="page-title syne">Laboratoire d'Analyses</h2>
+      <p class="page-sub">{{attente()}} analyses en attente — {{pret()}} résultats disponibles </p>
+    </div>
+    <button class="btn-primary-mc" (click)="showModalAdd.set(true)"><i class="bi bi-plus-lg"></i> Nouvelle
+      Analyse</button>
+    <button class="btn-primary-mc" (click)="showModalAddResultat.set(true)"><i class="bi bi-plus-lg"></i> Nouveau
+      Resultat
+    </button>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-3">
+      <div class="mc-card">
+        <div class="mc-card-body" style="text-align:center;padding:16px;">
+          <div style="font-size:26px;margin-bottom:4px;">🧪</div>
+          <div class="syne" style="font-size:24px;font-weight:800;color:var(--primary);">{{attente()}}</div>
+          <div style="font-size:11.5px;color:var(--muted);">En attente</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="mc-card">
+        <div class="mc-card-body" style="text-align:center;padding:16px;">
+          <div style="font-size:26px;margin-bottom:4px;">⏳</div>
+          <div class="syne" style="font-size:24px;font-weight:800;color:var(--accent2);">{{pret()}}</div>
+          <div style="font-size:11.5px;color:var(--muted);">Résultats prêts</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="mc-card">
+        <div class="mc-card-body" style="text-align:center;padding:16px;">
+          <div style="font-size:26px;margin-bottom:4px;">✅</div>
+          <div class="syne" style="font-size:24px;font-weight:800;color:var(--success);">{{LaboTests().length}}</div>
+          <div style="font-size:11.5px;color:var(--muted);">Complétés ce mois</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="mc-card">
+        <div class="mc-card-body" style="text-align:center;padding:16px;">
+          <div style="font-size:26px;margin-bottom:4px;">⚠️</div>
+          <div class="syne" style="font-size:24px;font-weight:800;color:var(--warning);">{{critique()}}</div>
+          <div style="font-size:11.5px;color:var(--muted);">Résultats critiques</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--=====================================================
+  ==================== FILTRE============================= 
+  ====================================================== -->
+  <div class="mc-card mb-3 ">
+    <div class="mc-card-body ms-4" style="padding:12px 16px;">
+      <div class="row g-2 align-items-center">
+        <div class="col-md-4">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" placeholder="Nom de patient" />
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select class="form-ctrl" [ngModel]="filterStatus()" (ngModelChange)="filterStatus.set($event)">
+            <option value="">Tous les Statuts</option>
+            @for (d of status; track d) { <option [value]="d">{{ d }}</option> }
+          </select>
+        </div>
+
+
+        <div class="col-md-2">
+          <button class="btn-primary-mc w-100" style="justify-content:center;">
+            <i class="bi bi-funnel-fill"></i> Filtrer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row g-3">
+    <div class="col-lg-7">
+      <div class="mc-card">
+        <div class="mc-card-header"><span class="mc-card-title"><i class="bi bi-eyedropper me-2"
+              style="color:var(--accent)"></i>Analyses en cours</span></div>
+        <div style="overflow-x:auto;">
+          <table class="mc-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Patient</th>
+                <th>Type d'analyse</th>
+                <th>Prescripteur</th>
+                <th>Date</th>
+                <th>Statut</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (t of pageLabo(); track t.numero) {
+              <tr>
+                <td><strong>{{ t.id }}</strong></td>
+                <td>{{ t.patient }}</td>
+                <td>{{ t.type }}</td>
+                <td style="font-size:12px;color:var(--muted);">{{ t.prescripteur }}</td>
+                <td>{{ t.heure }}</td>
+                <td>
+                  <span class="badge-mc" [class.badge-success-mc]="t.status==='Prêt'"
+                    [class.badge-info-mc]="t.status==='En cours'" [class.badge-warning-mc]="t.status==='Attente'"
+                    [class.badge-muted-mc]="t.status==='48h'">
+                    {{ t.status }}
+                  </span>
+                </td>
+                <td>
+                  <!-- <button class="btn-outline-mc" style="padding:3px 7px;font-size:10.5px;">
+                    {{ t.status === 'Prêt' ? 'Voir' : 'Suivi' }}
+                  </button> -->
+                  <button class="btn-primary-mc" style="padding:5px 10px;font-size:11px;" (click)="openEdit(t)"><i
+                      class="bi bi-pencil-fill"></i></button>
+                  <button class="btn-danger-mc" style="padding:5px 10px;font-size:11px;" (click)="openDelete(t)"><i
+                      class="bi bi-trash3-fill"></i>
+                  </button>
+                </td>
+              </tr>
+              }
+            </tbody>
+            <!-- Compteur bas de page -->
+            <div class="mc-card-header">
+
+              <div style="display:flex;gap:5px;align-items:center;">
+                <span style="font-size:11px;color:var(--muted);">
+                  {{ currentPage() }} / {{ totalPage() }}
+                </span>
+                <button class="btn-outline-mc" style="padding:4px 8px;font-size:11px;" [disabled]="currentPage() === 1"
+                  (click)="prevPage()">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <button class="btn-outline-mc" style="padding:4px 8px;font-size:11px;"
+                  [disabled]="currentPage() === totalPage()" (click)="nextPage()">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="mc-card mb-3 overflow-auto">
+        <div class="mc-card-header"><span class="mc-card-title"><i class="bi bi-eyedropper me-2"
+              style="color:var(--accent)"></i>Resultats d'analyse</span></div>
+        <div class="overflow-x:auto;">
+          <table class="mc-table " id="overflow">
+            <thead>
+              <tr>
+
+                <th>Patient</th>
+                <th>Test</th>
+                <th>Valeur</th>
+                <th>Unité</th>
+                <th>reference</th>
+                <th>Statut</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of pageResultat(); track r.nom) {
+              <tr>
+
+                <td>{{r.patient}}</td>
+                <td>{{r.nom}}</td>
+                <td>{{r.valeur}}</td>
+                <td>{{r.unite}}</td>
+                <td>
+
+                  <div style="font-size:10.5px;color:var(--muted);">{{ r.reference }}</div>
+                </td>
+                <td>
+                  <div style="font-size:12.5px;font-weight:700;margin-right:10px;"
+                    [style.color]="r.status==='Normal' ? 'var(--success)' : r.status==='Haut' || r.status==='Critique' ? 'var(--danger)' : 'var(--warning)'">
+
+                    {{r.status}}
+                  </div>
+                </td>
+                <td>
+                  <button class="btn-primary-mc" style="padding:5px 10px;font-size:11px;" (click)="openEditResult(r)"><i
+                      class="bi bi-pencil-fill"></i></button>
+
+                </td>
+              </tr>
+              }
+            </tbody>
+            <!-- Compteur bas de page -->
+            <div class="mc-card-header">
+
+              <div style="display:flex;gap:5px;align-items:center;">
+                <span style="font-size:11px;color:var(--muted);" class="d-flex">
+                  {{ currentPage() }} / {{ totalPage() }}
+                </span>
+                <button class="btn-outline-mc" style="padding:4px 8px;font-size:11px;" [disabled]="currentPage() === 1"
+                  (click)="prevPage()">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <button class="btn-outline-mc" style="padding:4px 8px;font-size:11px;"
+                  [disabled]="currentPage() === totalPage()" (click)="nextPage()">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+          </table>
+        </div>
+      </div>
+
+      <!-- <div class="mc-card">
+        <div class="mc-card-header"><span class="mc-card-title">Équipements Labo</span></div>
+        <div class="mc-card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span style="font-size:13px;">Automate hématologie</span><span class="badge-mc badge-success-mc">✅ OK</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span style="font-size:13px;">Analyseur biochimie</span><span class="badge-mc badge-success-mc">✅ OK</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span style="font-size:13px;">Centrifugeuse A</span><span class="badge-mc badge-warning-mc">⚠️
+              Calibration</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center">
+            <span style="font-size:13px;">PCR COVID/Grippe</span><span class="badge-mc badge-success-mc">✅ OK</span>
+          </div>
+        </div>
+      </div> -->
+    </div>
+  </div>
+  @if (showModalAdd()) {
+  <div class="modal-overlay" (click)="showModalAdd.set(false)">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:3px;">👨‍⚕️ Ajouter
+        un examen</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Enregistrement d'un nouveau examen</p>
+      <div class="row g-3">
+        <div class="col-6">
+          <label class="form-lbl">ID d'examen</label>
+          <input class="form-ctrl" placeholder="Prénom..." [(ngModel)]="form.id">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Patient</label>
+          <input class="form-ctrl" placeholder="Nom complet du patient..." [(ngModel)]="form.patient">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Type D'examen</label>
+          <input class="form-ctrl" placeholder="Type d'examen..." [(ngModel)]="form.type">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Prescripteur </label>
+          <input class="form-ctrl" placeholder="Prescripteur..." [(ngModel)]="form.prescripteur">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Status</label>
+          <select class="form-ctrl" [(ngModel)]="form.status">
+            <option value="Prêt">Prêt</option>
+            <option value="En cours">En cours</option>
+            <option value="Attente">Attente</option>
+            <option value="48h">48h</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Heure</label>
+          <input class="form-ctrl" type="datetime-local" [(ngModel)]="form.heure">
+        </div>
+        <div class="col-12 d-flex justify-content-end gap-2">
+          <button class="btn-outline-mc" (click)="showModalAdd.set(false)" [disabled]="isSaving()">Annuler</button>
+          <button class="btn-primary-mc" (click)="AjouterTest()" [disabled]="isSaving()"><i class="bi bi-check-lg"></i>
+            @if(isSaving()){<i class="spinner-border spinner-border-sm me-1 "></i>}
+            Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+  <!-- =========================================
+   MODAL AJOUTER RESULTAT
+   =========================================-->
+  @if (showModalAddResultat()) {
+  <div class="modal-overlay" (click)="showModalAdd.set(false)">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:3px;">👨‍⚕️ Ajouter
+        un resultat d'examen</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Enregistrement d'un nouveau resultat examen</p>
+      <div class="row g-3">
+
+        <div class="col-6">
+          <label class="form-lbl">Patient</label>
+          <input class="form-ctrl" placeholder="Nom complet du patient..." [(ngModel)]="Resultform.patient">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Test</label>
+          <input class="form-ctrl" placeholder="Nom d'examen.." [(ngModel)]="Resultform.nom">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Valeur </label>
+          <input class="form-ctrl" placeholder="valeur..." [(ngModel)]="Resultform.valeur">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Unité </label>
+          <input class="form-ctrl" placeholder="Exemple g/dl..." [(ngModel)]="Resultform.unite">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Reference </label>
+          <input class="form-ctrl" placeholder="Reference ..." [(ngModel)]="Resultform.reference">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Statut</label>
+          <select class="form-ctrl" [(ngModel)]="Resultform.status">
+            <option value="Normal">Normal</option>
+            <option value="Haut">Haut</option>
+            <option value="Faible">Faible</option>
+            <option value="Critique">Critique</option>
+          </select>
+        </div>
+
+        <div class="col-12 d-flex justify-content-end gap-2">
+          <button class="btn-outline-mc" (click)="showModalAddResultat.set(false)"
+            [disabled]="isSaving()">Annuler</button>
+          <button class="btn-primary-mc" (click)="AjouterResultat()" [disabled]="isSaving()"><i
+              class="bi bi-check-lg"></i>
+            @if(isSaving()){<i class="spinner-border spinner-border-sm me-1 "></i>}
+            Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+  @if (showModalEdit()) {
+  <div class="modal-overlay" (click)="showModalAdd.set(false)">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:3px;">👨‍⚕️ Modifier
+        un examen</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Modification d'un examen</p>
+      <div class="row g-3">
+        <div class="col-6">
+          <label class="form-lbl">ID d'examen</label>
+          <input class="form-ctrl" [(ngModel)]="form.id">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Patient</label>
+          <input class="form-ctrl" [(ngModel)]="form.patient">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Type D'examen</label>
+          <input class="form-ctrl" [(ngModel)]="form.type">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Prescripteur </label>
+          <input class="form-ctrl" [(ngModel)]="form.prescripteur">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Status</label>
+          <select class="form-ctrl" [(ngModel)]="form.status">
+            <option value="Prêt">Prêt</option>
+            <option value="En cours">En cours</option>
+            <option value="Attente">Attente</option>
+            <option value="48h">48h</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Heure</label>
+          <input class="form-ctrl" type="datetime-local" [(ngModel)]="form.heure">
+        </div>
+        <div class="col-12 d-flex justify-content-end gap-2">
+          <button class="btn-outline-mc" (click)="showModalEdit.set(false)" [disabled]="isSaving()">Annuler</button>
+          <button class="btn-primary-mc" (click)="ModifierTest()" [disabled]="isSaving()"><i class="bi bi-check-lg"></i>
+            @if(isSaving()){<i class="spinner-border spinner-border-sm me-1 "></i>}
+            Modifier
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+  <!-- =========================================
+   MODAL MODIFIER RESULTAT
+   =========================================-->
+  @if (showModalEditResultat()) {
+  <div class="modal-overlay" (click)="showModalAdd.set(false)">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:3px;">👨‍⚕️ Modifier
+        un resultat d'examen</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Modification d'un nouveau resultat examen</p>
+      <div class="row g-3">
+
+        <div class="col-6">
+          <label class="form-lbl">Patient</label>
+          <input class="form-ctrl" [(ngModel)]="Resultform.patient">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Test</label>
+          <input class="form-ctrl" [(ngModel)]="Resultform.nom">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Valeur </label>
+          <input class="form-ctrl" [(ngModel)]="Resultform.valeur">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Unité </label>
+          <input class="form-ctrl" [(ngModel)]="Resultform.unite">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Reference </label>
+          <input class="form-ctrl" [(ngModel)]="Resultform.reference">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Statut</label>
+          <select class="form-ctrl" [(ngModel)]="Resultform.status">
+            <option value="Normal">Normal</option>
+            <option value="Haut">Haut</option>
+            <option value="Faible">Faible</option>
+            <option value="Critique">Critique</option>
+          </select>
+        </div>
+
+        <div class="col-12 d-flex justify-content-end gap-2">
+          <button class="btn-outline-mc" (click)="showModalEditResultat.set(false)"
+            [disabled]="isSaving()">Annuler</button>
+          <button class="btn-primary-mc" (click)="ModifierResultat()" [disabled]="isSaving()"><i
+              class="bi bi-check-lg"></i>
+            @if(isSaving()){<i class="spinner-border spinner-border-sm me-1 "></i>}
+            Modifier
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+  @if (showModalDelete()) {
+  <div class="modal-overlay" (click)="showModalDelete.set(false)">
+    <div class="modal-box" style="max-width:420px;text-align:center;" (click)="$event.stopPropagation()">
+      <div style="font-size:48px;margin-bottom:12px;">🗑️</div>
+      <h3 class="syne" style="font-size:18px;font-weight:800;color:#e53e3e;margin-bottom:8px;">
+        Supprimer cette Opération ?
+      </h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:6px;">
+        Vous êtes sur le point de supprimer l'examen numero <strong>{{ TestToDelete()?.id }}</strong> du Patient
+        <strong>{{ TestToDelete()?.patient }} </strong>
+      </p>
+      <p style="font-size:12px;color:#e53e3e;margin-bottom:24px;">Cette action est irréversible.</p>
+      <div class="d-flex justify-content-center gap-3">
+        <button class="btn-outline-mc" (click)="showModalDelete.set(false)">Annuler</button>
+        <button class="btn-danger-mc" (click)="supprimerTest()" [disabled]="isSaving()">
+          @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          <i class="bi bi-trash3"></i> Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+</div>

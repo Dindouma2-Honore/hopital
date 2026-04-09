@@ -1,0 +1,335 @@
+<div class="page-enter">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="page-title syne" style="color:var(--danger)">🚨 Service des Urgences</h2>
+      <p class="page-sub">{{urgences().length}} cas actifs — {{critique()}} critiques — Temps d'attente moyen : 18 min
+      </p>
+    </div>
+    <button class="btn-danger-mc" (click)="openAdd()"><i class="bi bi-plus-lg"></i> Nouveau Cas</button>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="mc-card">
+        <div class="mc-card-body" style="text-align:center;padding:18px;">
+          <div style="font-size:32px;margin-bottom:4px;">🔴</div>
+          <div class="syne" style="font-size:28px;font-weight:800;color:var(--danger);">{{critique()}}</div>
+          <div style="font-size:12px;color:var(--muted);">Critiques P1</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="mc-card">
+        <div class="mc-card-body" style="text-align:center;padding:18px;">
+          <div style="font-size:32px;margin-bottom:4px;">🟠</div>
+          <div class="syne" style="font-size:28px;font-weight:800;color:var(--warning);">{{urgent()}}</div>
+          <div style="font-size:12px;color:var(--muted);">Urgents P2</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="mc-card">
+        <div class="mc-card-body" style="text-align:center;padding:18px;">
+          <div style="font-size:32px;margin-bottom:4px;">🔵</div>
+          <div class="syne" style="font-size:28px;font-weight:800;color:var(--accent2);">{{standard()}}</div>
+          <div style="font-size:12px;color:var(--muted);">Standard P3</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="mc-card">
+        <div class="mc-card-body" style="text-align:center;padding:18px;">
+          <div style="font-size:32px;margin-bottom:4px;">⏱️</div>
+          <div class="syne" style="font-size:28px;font-weight:800;color:var(--primary);">18</div>
+          <div style="font-size:12px;color:var(--muted);">Min d'attente</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mc-card">
+    <div class="mc-card-body">
+      
+      <div class="mc-card-header">
+        <span class="mc-card-title"><i class="bi bi-list-ul me-2" style="color:var(--danger)"></i>File d'attente</span>
+        
+        <input class="form-ctrl w-50" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+          placeholder="Rechercher les patients">
+     
+        <button class="btn-primary-mc w-25 h-25" style="padding:5px 10px;font-size:11px;"><i
+            class="bi bi-arrow-clockwise"></i> Filtrer</button>
+        <button class="btn-outline-mc" style="padding:5px 10px;font-size:11px;" (click)="refresh()"><i
+            class="bi bi-arrow-clockwise"></i> Actualiser</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="mc-table">
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th>Patient</th>
+              <th>Priorité</th>
+              <th>Motif</th>
+              <th>Arrivée</th>
+              <th>Médecin</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of pageUrgences(); track c.id) {
+            <tr>
+              <td><strong>{{ c.id }}</strong></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div class="mc-avatar" style="width:30px;height:30px;font-size:10px;" [style.background]="c.color">{{
+                    c.initials }}</div>
+                  {{ c.patient }}
+                </div>
+              </td>
+              <td>
+                <span class="badge-mc" [class.badge-danger-mc]="c.priorite==='Critique'"
+                  [class.badge-warning-mc]="c.priorite==='Urgent'" [class.badge-info-mc]="c.priorite==='Standard'">
+                  {{ c.priorite }}
+                </span>
+              </td>
+              <td style="font-size:12.5px;">{{ c.raison }}</td>
+              <td style="font-size:12px;color:var(--muted);">{{ c.heureArrive }}</td>
+              <td style="font-size:12px;color:var(--muted);">{{ c.docteur }}</td>
+              <td>
+                <span class="badge-mc" [class.badge-info-mc]="c.status==='En cours'"
+                  [class.badge-danger-mc]="c.status==='Urgent'" [class.badge-warning-mc]="c.status==='Attente scan'"
+                  [class.badge-muted-mc]="c.status==='En attente'">
+                  {{ c.status }}
+                </span>
+              </td>
+              <td>
+                <div class="action-btns">
+                  <!-- Modifier -->
+                  <button class="btn-outline-mc" style="padding:3px 7px;font-size:10.5px;" (click)="openEdit(c)"
+                    title="Modifier cette urgence">
+                    <i class="bi bi-pencil-fill"></i>
+                  </button>
+                  <!-- Supprimer -->
+                  <button class="btn-outline-mc" style="padding:3px 7px;font-size:10.5px;" (click)="openDelete(c)"
+                    title="Supprimer cette urgence">
+                    <i class="bi bi-trash3-fill"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            }
+          </tbody>
+          <!-- Compteur bas de page -->
+        <div class="mc-card-header">
+          
+          <div style="display:flex;gap:5px;align-items:center;">
+            <span style="font-size:11px;color:var(--muted);">
+              {{ currentPage() }} / {{ totalPage() }}
+            </span>
+            <button class="btn-outline-mc" style="padding:4px 8px;font-size:11px;" [disabled]="currentPage() === 1"
+              (click)="prevPage()">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="btn-outline-mc" style="padding:4px 8px;font-size:11px;"
+              [disabled]="currentPage() === totalPage()" (click)="nextPage()">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+        </table>
+      </div>
+    </div>
+    @if (showModalAdd()) {
+    <div class="modal-overlay" (click)="closeAdd()">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+
+        <div class="modal-header-custom">
+          <div class="modal-icon-wrap" style="background:rgba(0,194,168,.12);color:var(--accent);">
+            <i class="bi bi-person-plus-fill"></i>
+          </div>
+          <div>
+            <h3 class="syne modal-title-text">Nouveau Patient</h3>
+            <p class="modal-sub-text">Enregistrement dans la base de données</p>
+          </div>
+        </div>
+
+        <ng-container *ngTemplateOutlet="patientFormTpl"></ng-container>
+
+        @if (saveError()) {
+        <div class="save-error"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ saveError() }}</div>
+        }
+
+        <div class="modal-footer-btns">
+          <button class="btn-outline-mc" (click)="closeAdd()" [disabled]="isSaving()">
+            Annuler
+          </button>
+          <button class="btn-primary-mc" (click)="confirmAdd()" [disabled]="isSaving()">
+            @if (isSaving()) {
+            <span class="spinner-sm"></span> Enregistrement...
+            } @else {
+            <i class="bi bi-check-lg"></i> Enregistrer
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+    }
+    @if (showModalEdit()) {
+    <div class="modal-overlay" (click)="closeEdit()">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+
+        <div class="modal-header-custom">
+          <div class="modal-icon-wrap" style="background:rgba(0,194,168,.12);color:var(--accent);">
+            <i class="bi bi-person-plus-fill"></i>
+          </div>
+          <div>
+            <h3 class="syne modal-title-text">Modifier le cas d'urgence</h3>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">
+              Mise à jour — {{UrgenceToEdit()?.id}}
+            </p>
+          </div>
+        </div>
+
+        <ng-container *ngTemplateOutlet="patientFormTpl"></ng-container>
+
+        @if (saveError()) {
+        <div class="save-error"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ saveError() }}</div>
+        }
+
+        <div class="modal-footer-btns">
+          <button class="btn-outline-mc" (click)="closeEdit()" [disabled]="isSaving()">
+            Annuler
+          </button>
+          <button class="btn-save-edit btn-primary-mc" (click)="updateUrgence()" [disabled]="isSaving()">
+            @if (isSaving()) {
+            <span class="spinner-sm"></span> Modification...
+            } @else {
+            <i class="bi bi-check-lg"></i> Enregistrer les modifications
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+    }
+    <!-- ════════════════════════════════════════════════════════
+       MODAL — CONFIRMER SUPPRESSION
+  ════════════════════════════════════════════════════════ -->
+    @if (showModalDelete() ) {
+    <div class="modal-overlay" (click)="closeDelete()">
+      <div class="modal-box modal-delete" (click)="$event.stopPropagation()">
+
+        <!-- Icône danger -->
+        <div style="text-align:center;margin-bottom:20px;">
+          <div class="delete-icon-circle">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          </div>
+        </div>
+
+        <h3 class="syne"
+          style="font-size:18px;font-weight:800;color:var(--primary);text-align:center;margin-bottom:6px;">
+          Confirmer la suppression
+        </h3>
+        <p style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:20px;">
+          Cette action est <strong>irréversible</strong>. cet urgence sera définitivement supprimé de la base de
+          données.
+        </p>
+
+        <!-- Récapitulatif du patient à supprimer -->
+        <div class="delete-patient-info">
+          <div class="mc-avatar" style="width:44px;height:44px;border-radius:12px;font-size:16px;">
+            {{ (UrgenceToDelete()!.id) }}
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:14px;color:var(--primary);">
+              {{ UrgenceToDelete()!.patient }}
+            </div>
+            <div style="font-size:12px;color:var(--muted);">
+              {{ UrgenceToDelete()!.id }} · {{ UrgenceToDelete()!.priorite }}
+            </div>
+            <div style="font-size:11.5px;color:var(--muted);">
+              Admis le {{ UrgenceToDelete()!.heureArrive }}
+            </div>
+          </div>
+        </div>
+
+        @if (saveError()) {
+        <div class="save-error"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ saveError() }}</div>
+        }
+
+        <div class="modal-footer-btns" style="margin-top:20px;">
+          <button class="btn-outline-mc" (click)="closeDelete()" [disabled]="isSaving()">
+            <i class="bi bi-x-lg"></i> Annuler
+          </button>
+          <button class="btn-delete-confirm" (click)="confirmDelete()" [disabled]="isSaving()">
+            @if (isSaving()) {
+            <span class="spinner-sm"></span> Suppression...
+            } @else {
+            <i class="bi bi-trash3-fill"></i> Oui, supprimer
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+    }
+    <ng-template #patientFormTpl>
+      <div class="row g-3 mb-3">
+
+        <!-- Matricule — readonly en modification -->
+        <div class="col-md-6">
+          <label class="form-lbl">
+            Identifiant <span style="color:var(--danger)">*</span>
+          </label>
+          <input class="form-ctrl" [(ngModel)]="form.id" name="id" [readonly]="showModalEdit()" placeholder="Ex: P001"
+            [style.opacity]="showModalEdit() ? '0.6' : '1'">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-lbl">Patient <span style="color:var(--danger)">*</span></label>
+          <input class="form-ctrl" [(ngModel)]="form.patient" placeholder="Nom complet du patient" name="patient">
+        </div>
+
+
+        <div class="col-md-6">
+          <label class="form-lbl">Priorité</label>
+          <select class="form-ctrl" [(ngModel)]="form.priorite">
+            <option value="Critique">Critique</option>
+            <option value="Urgent">Urgent</option>
+            <option value="Standard">Standard</option>
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-lbl">Statut</label>
+          <select class="form-ctrl" [(ngModel)]="form.status">
+            <option value="En cours">En cours</option>
+            <option value="En attente">En attente</option>
+            <option value="Urgent">Urgent</option>
+            <option value="Attente scan">Attente scan</option>
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-lbl">Heure D'arrivé<em></em></label>
+          <input class="form-ctrl" type="time" [(ngModel)]="form.heureArrive" name="heureArrive">
+        </div>
+
+
+
+        <div class="col-md-6">
+          <label class="form-lbl">Médecin traitant</label>
+          <input class="form-ctrl" [(ngModel)]="form.docteur" name="docteur" placeholder="Ex: Dr. Honoré">
+        </div>
+
+
+        <div class="col-md-6">
+          <label class="form-lbl">Motif</label>
+          <input class="form-ctrl" type="text" [(ngModel)]="form.raison" name="motif">
+        </div>
+      </div>
+
+
+    </ng-template>
+  </div>

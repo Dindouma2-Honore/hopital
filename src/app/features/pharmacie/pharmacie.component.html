@@ -1,0 +1,899 @@
+<!-- src/app/features/pharmacie/pharmacie.component.html -->
+<div class="page-enter">
+
+  <!-- En-tête -->
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <h2 class="page-title syne">Pharmacie Hospitalière</h2>
+      <p class="page-sub">Gestion des stocks, entrées et sorties de médicaments</p>
+    </div>
+    <button class="btn-primary-mc" (click)="openNouveauProduit()">
+      <i class="bi bi-plus-lg"></i> Nouveau Médicament
+    </button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(0,194,168,.1);color:var(--accent);"><i
+            class="bi bi-capsule-pill"></i></div>
+        <div class="kpi-value">{{ statsStock().total }}</div>
+        <div class="kpi-label">Références enregistrées</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(46,213,115,.1);color:var(--success);"><i
+            class="bi bi-check-circle-fill"></i></div>
+        <div class="kpi-value" style="color:var(--success);">{{ statsStock().ok }}</div>
+        <div class="kpi-label">Stock suffisant</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(255,165,2,.1);color:var(--warning);"><i
+            class="bi bi-exclamation-triangle-fill"></i></div>
+        <div class="kpi-value" style="color:var(--warning);">{{ statsStock().alerte }}</div>
+        <div class="kpi-label">Alertes stock bas</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(255,71,87,.1);color:var(--danger);"><i
+            class="bi bi-x-circle-fill"></i></div>
+        <div class="kpi-value" style="color:var(--danger);">{{ statsStock().rupture }}</div>
+        <div class="kpi-label">Ruptures de stock</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Onglets -->
+  <div class="tab-bar mb-3">
+    <button class="tab-btn" [class.active]="activeTab()==='stock'" (click)="setTab('stock')">
+      <i class="bi bi-boxes"></i> Stock actuel
+    </button>
+    <button class="tab-btn" [class.active]="activeTab()==='mouvements'" (click)="setTab('mouvements')">
+      <i class="bi bi-arrow-left-right"></i> Entrées / Sorties
+    </button>
+    <button class="tab-btn" [class.active]="activeTab()==='commandes'" (click)="setTab('commandes')">
+      <i class="bi bi-truck"></i> Commandes fournisseurs
+    </button>
+  </div>
+
+  <!-- ══ ONGLET STOCK ══ -->
+  @if (activeTab() === 'stock') {
+  <div class="mc-card">
+    <div class="mc-card-header">
+      <span class="mc-card-title">
+        <i class="bi bi-boxes me-2" style="color:var(--accent)"></i>
+        Inventaire médicaments
+      </span>
+      <div class="search-box" style="width:210px;">
+        <i class="bi bi-search"></i>
+        <input [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" placeholder="Rechercher...">
+      </div>
+    </div>
+    <div class="mc-card-body">
+      <div class="row g-2">
+        @for (m of filtered(); track m.reference) {
+        <div class="col-xl-3 col-md-4 col-sm-6">
+          <div class="med-card" [class.med-alerte]="!m.isOk" [class.med-rupture]="m.stock===0">
+
+            <!-- Nom + statut -->
+            <div class="med-top">
+              <div class="med-info">
+                <div class="med-name">{{ m.nom }}</div>
+                <div class="med-generic">{{ m.generique }} · {{ m.categorie }}</div>
+              </div>
+              <span class="badge-mc" [class.badge-success-mc]="m.isOk" [class.badge-warning-mc]="!m.isOk && m.stock > 0"
+                [class.badge-danger-mc]="m.stock === 0">
+                {{ m.stock === 0 ? 'Rupture' : m.isOk ? 'OK' : 'Bas' }}
+              </span>
+            </div>
+
+            <!-- Barre de stock -->
+            <div class="stock-row">
+              <span class="stock-label">Stock</span>
+              <span class="stock-qty"
+                [style.color]="m.stock===0 ? 'var(--danger)' : !m.isOk ? 'var(--warning)' : 'var(--success)'">
+                {{ m.stock }} {{ m.unite }}
+              </span>
+            </div>
+            <div class="mc-progress mb-1">
+              <div class="mc-progress-bar" [style.width.%]="stockPct(m)"
+                [style.background]="m.stock===0 ? 'var(--danger)' : !m.isOk ? 'var(--warning)' : ''">
+              </div>
+            </div>
+            <div class="stock-min">Seuil minimum : {{ m.minStock }} {{ m.unite }}</div>
+
+            <!-- Boutons CLAIRS -->
+            <div class="med-actions">
+
+              <!-- ENTRÉE DE STOCK = Approvisionner -->
+              <button class="action-btn-in" (click)="openApprovisionner(m)"
+                title="Ajouter du stock — réception fournisseur">
+                <i class="bi bi-box-arrow-in-down"></i>
+                Approvisionner
+              </button>
+
+              <!-- SORTIE DE STOCK = Délivrer -->
+              <button class="action-btn-out" (click)="openSortie(m)" [disabled]="m.stock === 0"
+                title="Retirer du stock — délivrance patient ou service">
+                <i class="bi bi-box-arrow-up"></i>
+                Délivrer
+              </button>
+
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- ══ ONGLET MOUVEMENTS ══ -->
+   <!-- ══ ONGLET MOUVEMENTS ══ -->
+  @if (activeTab() === 'mouvements') {
+  <div class="mc-card">
+    <div class="mc-card-header">
+      <span class="mc-card-title">
+        <i class="bi bi-arrow-left-right me-2" style="color:var(--accent2)"></i>
+        Historique des mouvements de stock
+      </span>
+      <div style="display:flex;gap:6px;">
+        <span class="legend-pill entree"><i class="bi bi-box-arrow-in-down"></i> Entrée</span>
+        <span class="legend-pill sortie"><i class="bi bi-box-arrow-up"></i> Sortie</span>
+      </div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="mc-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Date & Heure</th>
+            <th>Médicament</th>
+            <th>Mouvement</th>
+            <th>Quantité</th>
+            <th>Motif</th>
+            <th>Responsable</th>
+            <th style="text-align:center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (mv of mouvements(); track mv.id) {
+          <tr>
+            <td style="font-size:11px;color:var(--muted);">{{ mv.numero }}</td>
+            <td style="font-size:11.5px;color:var(--muted);white-space:nowrap;">{{ mv.date }}</td>
+            <td style="font-weight:600;font-size:12.5px;">{{ mv.produit }}</td>
+            <td>
+              <span class="mouv-badge" [class.mouv-entree]="mv.type==='Entrée'"
+                [class.mouv-sortie]="mv.type==='Sortie'">
+                <i class="bi" [class.bi-box-arrow-in-down]="mv.type==='Entrée'"
+                  [class.bi-box-arrow-up]="mv.type==='Sortie'"></i>
+                {{ mv.type }}
+              </span>
+            </td>
+            <td>
+              <span [style.color]="mv.type==='Entrée' ? 'var(--success)' : 'var(--danger)'"
+                style="font-weight:700;font-size:13px;">
+                {{ mv.type==='Entrée' ? '+' : '-' }}{{ mv.quantite }}
+              </span>
+            </td>
+            <td style="font-size:12px;color:var(--muted);">{{ mv.motif }}</td>
+            <td style="font-size:12px;">{{ mv.responsable }}</td>
+            <td style="text-align:center;white-space:nowrap;">
+              <!-- Bouton Modifier -->
+              <button class="btn-icon-action edit-mv"
+                      title="Modifier ce mouvement"
+                      (click)="openEditMouvement(mv)">
+                <i class="bi bi-pencil-fill"></i>
+              </button>
+              <!-- Bouton Supprimer -->
+              <button class="btn-icon-action delete-mv"
+                      title="Supprimer ce mouvement"
+                      (click)="openDeleteMouvement(mv)">
+                <i class="bi bi-trash3-fill"></i>
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+
+  <!-- ══ ONGLET COMMANDES ══ -->
+  @if (activeTab() === 'commandes') {
+  <div class="mc-card">
+    <div class="mc-card-header">
+      <span class="mc-card-title">
+        <i class="bi bi-truck me-2" style="color:var(--warning)"></i>
+        Commandes fournisseurs
+      </span>
+      <button class="btn-primary-mc" style="padding:6px 14px;font-size:11.5px;"
+              (click)="openNouvelleCommande()">
+        <i class="bi bi-plus-lg"></i> Passer commande
+      </button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="mc-table">
+        <thead>
+          <tr>
+            <th>N° Commande</th>
+            <th>Fournisseur</th>
+            <th>Médicaments</th>
+            <th>Date commande</th>
+            <th>Livraison prévue</th>
+            <th>Montant</th>
+            <th>Statut</th>
+            <th style="text-align:center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of commandes(); track c.numero) {
+          <tr>
+            <td><strong>#{{ c.numCommande }}</strong></td>
+            <td>{{ c.fournisseur }}</td>
+            <td style="font-size:12px;color:var(--muted);">{{ c.medicaments }}</td>
+            <td style="font-size:12px;">{{ c.dateCommande }}</td>
+            <td style="font-size:12px;">{{ c.dateLivraison }}</td>
+            <td style="font-weight:600;white-space:nowrap;">
+              {{ c.montant.toLocaleString('fr-FR') }} FCFA
+            </td>
+            <td>
+              <span class="badge-mc" [ngClass]="statutClass(c.statut)">
+                {{ c.statut }}
+              </span>
+            </td>
+            <td style="text-align:center;white-space:nowrap;">
+              <button class="btn-icon-action edit-mv"
+                      title="Modifier cette commande"
+                      (click)="openEditCommande(c)">
+                <i class="bi bi-pencil-fill"></i>
+              </button>
+              <button class="btn-icon-action delete-mv"
+                      title="Supprimer cette commande"
+                      (click)="openDeleteCommande(c)">
+                <i class="bi bi-trash3-fill"></i>
+              </button>
+            </td>
+          </tr>
+          }
+          @if (commandes().length === 0) {
+          <tr>
+            <td colspan="8" style="text-align:center;padding:28px;color:var(--muted);font-size:13px;">
+              <i class="bi bi-inbox me-2"></i>Aucune commande enregistrée
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+
+  <!-- ════════════════════════════════════
+       MODAL — APPROVISIONNER (ENTRÉE STOCK)
+  ════════════════════════════════════ -->
+  @if (modalType() === 'approvisionner' && selectedMedicine()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+
+      <div class="modal-icon-header entree-header">
+        <div class="modal-icon entree-icon">
+          <i class="bi bi-box-arrow-in-down"></i>
+        </div>
+        <div>
+          <h3 class="syne" style="font-size:17px;font-weight:800;color:var(--primary);margin-bottom:2px;">
+            Approvisionner le stock
+          </h3>
+          <p style="font-size:12px;color:var(--muted);margin:0;">
+            Entrée de stock — réception depuis fournisseur ou transfert
+          </p>
+        </div>
+      </div>
+
+      <!-- Médicament concerné -->
+      <div class="med-concerned entree-bg mb-4">
+        <div
+          style="font-size:10.5px;font-weight:700;color:var(--success);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;">
+          Médicament concerné
+        </div>
+        <div style="font-weight:700;font-size:14px;color:var(--primary);">
+          {{ selectedMedicine()!.nom }}
+        </div>
+        <div style="font-size:12px;color:var(--muted);">
+          Stock actuel : <strong>{{ selectedMedicine()!.stock }} {{ selectedMedicine()!.unite }}</strong>
+          &nbsp;.&nbsp; Seuil min : {{ selectedMedicine()!.minStock }} {{ selectedMedicine()!.unite }}
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-lbl">
+            Quantité à entrer en stock <span style="color:var(--danger)">*</span>
+          </label>
+          <div class="qty-input-group">
+            <button class="qty-btn" (click)="formAppro.quantite = Math.max(0, formAppro.quantite - 1)">−</button>
+            <input class="form-ctrl qty-input" type="number" min="0" [(ngModel)]="formAppro.quantite" placeholder="0">
+            <span class="qty-unit">{{ selectedMedicine()!.unite }}</span>
+            <button class="qty-btn" (click)="formAppro.quantite = formAppro.quantite + 1">+</button>
+          </div>
+          @if (formAppro.quantite > 0) {
+          <div class="qty-preview entree-preview">
+            Stock après appro :
+            <strong>{{ selectedMedicine()!.stock + formAppro.quantite }} {{ selectedMedicine()!.unite }}</strong>
+          </div>
+          }
+        </div>
+        <div class="col-md-6">
+          <label class="form-lbl">Fournisseur</label>
+          <select class="form-ctrl">
+            <option>PharmaDistrib CM</option>
+            <option>MedExpress Africa</option>
+            <option>HealthCare Supply</option>
+            <option>Autre</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-lbl">N° bon de livraison</label>
+          <input class="form-ctrl" [(ngModel)]="formAppro.numCommande" placeholder="BL-XXXX">
+        </div>
+        <div class="col-12">
+          <label class="form-lbl">Motif</label>
+          <select class="form-ctrl" [(ngModel)]="formAppro.motif">
+            <option>Réapprovisionnement régulier</option>
+            <option>Commande urgente</option>
+            <option>Transfert inter-service</option>
+            <option>Retour non utilisé</option>
+            <option>Correction inventaire</option>
+          </select>
+        </div>
+        <div class="col-12 d-flex justify-content-end gap-2 mt-1">
+          <button class="btn-outline-mc" (click)="closeModal()">Annuler</button>
+          <button class="btn-entree" (click)="validerAppro()" [disabled]="formAppro.quantite <= 0">
+            <i class="bi bi-box-arrow-in-down"></i>
+            Confirmer l'entrée (+{{ formAppro.quantite }} {{ selectedMedicine()!.unite }})
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- ════════════════════════════════════
+       MODAL — DÉLIVRER (SORTIE STOCK)
+  ════════════════════════════════════ -->
+  @if (modalType() === 'sortie' && selectedMedicine()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+
+      <div class="modal-icon-header sortie-header">
+        <div class="modal-icon sortie-icon">
+          <i class="bi bi-box-arrow-up"></i>
+        </div>
+        <div>
+          <h3 class="syne" style="font-size:17px;font-weight:800;color:var(--primary);margin-bottom:2px;">
+            Délivrer / Sortie de stock
+          </h3>
+          <p style="font-size:12px;color:var(--muted);margin:0;">
+            Retirer des unités du stock — patient, service ou usage interne
+          </p>
+        </div>
+      </div>
+
+      <!-- Médicament concerné -->
+      <div class="med-concerned sortie-bg mb-4">
+        <div
+          style="font-size:10.5px;font-weight:700;color:var(--danger);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;">
+          Médicament concerné
+        </div>
+        <div style="font-weight:700;font-size:14px;color:var(--primary);">
+          {{ selectedMedicine()!.nom }}
+        </div>
+        <div style="font-size:12px;color:var(--muted);">
+          Stock disponible : <strong style="color:var(--danger)">{{ selectedMedicine()!.stock }} {{
+            selectedMedicine()!.unite }}</strong>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-lbl">
+            Quantité à retirer <span style="color:var(--danger)">*</span>
+          </label>
+          <div class="qty-input-group">
+            <button class="qty-btn" (click)="formSortie.quantite = Math.max(0, formSortie.quantite - 1)">−</button>
+            <input class="form-ctrl qty-input" type="number" min="0" [max]="selectedMedicine()!.stock"
+              [(ngModel)]="formSortie.quantite" placeholder="0">
+            <span class="qty-unit">{{ selectedMedicine()!.unite }}</span>
+            <button class="qty-btn"
+              (click)="formSortie.quantite = Math.min(selectedMedicine()!.stock, formSortie.quantite + 1)">+</button>
+          </div>
+          @if (formSortie.quantite > selectedMedicine()!.stock) {
+          <div class="qty-preview" style="color:var(--danger);">
+            Quantité insuffisante — stock disponible : {{ selectedMedicine()!.stock }}
+          </div>
+          } @else if (formSortie.quantite > 0) {
+          <div class="qty-preview sortie-preview">
+            Stock restant après sortie :
+            <strong>{{ selectedMedicine()!.stock - formSortie.quantite }} {{ selectedMedicine()!.unite }}</strong>
+          </div>
+          }
+        </div>
+        <div class="col-12">
+          <label class="form-lbl">Motif de sortie</label>
+          <select class="form-ctrl" [(ngModel)]="formSortie.motif">
+            <option>Délivrance patient</option>
+            <option>Usage bloc opératoire</option>
+            <option>Usage service urgences</option>
+            <option>Usage USI / réanimation</option>
+            <option>Usage interne hôpital</option>
+            <option>Périmé — mise au rebut</option>
+            <option>Transfert autre service</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-lbl">Patient (si applicable)</label>
+          <select class="form-ctrl" [(ngModel)]="formSortie.patient">
+            <option value="">— Aucun patient —</option>
+            <!-- @for (p of data.patients(); track p.id) {
+                <option [value]="p.firstName + ' ' + p.lastName + ' (' + p.id + ')'">
+                  {{ p.firstName }} {{ p.lastName }} ({{ p.id }})
+                </option>
+              } -->
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-lbl">Prescripteur / Responsable</label>
+          <select class="form-ctrl" [(ngModel)]="formSortie.prescripteur">
+            <option value="">— Sélectionner —</option>
+            @for (d of docteurs(); track d.id) {
+            <option [value]="'Dr. ' + d.nom">Dr. {{ d.nom }} ({{ d.specialite }})</option>
+            }
+            <option value="Inf. Biloa">Inf. Biloa</option>
+            <option value="Admin">Administration</option>
+          </select>
+        </div>
+        <div class="col-12 d-flex justify-content-end gap-2 mt-1">
+          <button class="btn-outline-mc" (click)="closeModal()">Annuler</button>
+          <button class="btn-sortie" (click)="validerSortie()"
+            [disabled]="formSortie.quantite <= 0 || formSortie.quantite > selectedMedicine()!.stock">
+            <i class="bi bi-box-arrow-up"></i>
+            Confirmer la sortie (−{{ formSortie.quantite }} {{ selectedMedicine()!.unite }})
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- ════════════════════════════════════
+       MODAL — NOUVEAU MÉDICAMENT
+  ════════════════════════════════════ -->
+  @if (modalType() === 'nouveau') {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3 class="syne" style="font-size:17px;font-weight:800;color:var(--primary);margin-bottom:3px;">
+        Nouveau Médicament
+      </h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">
+        Enregistrer une nouvelle référence dans le stock
+      </p>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-lbl">Nom commercial</label>
+          <input class="form-ctrl" [(ngModel)]="formNouv.nom" placeholder="Ex: Amoxicilline 500mg">
+        </div>
+        <div class="col-md-6">
+          <label class="form-lbl">Dénomination générique (DCI)</label>
+          <input class="form-ctrl" [(ngModel)]="formNouv.generique" placeholder="Ex: Amoxicilline">
+        </div>
+        <div class="col-md-6">
+          <label class="form-lbl">Catégorie</label>
+          <select class="form-ctrl" [(ngModel)]="formNouv.categorie">
+            <option>Antibiotique</option>
+            <option>Antalgique</option>
+            <option>Antidiabétique</option>
+            <option>Antihypertenseur</option>
+            <option>Anticoagulant</option>
+            <option>Antiémétique</option>
+            <option>Analgésique</option>
+            <option>Autre</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-lbl">Unité de mesure</label>
+          <select class="form-ctrl" [(ngModel)]="formNouv.unite">
+            <option>boîtes</option>
+            <option>flacons</option>
+            <option>ampoules</option>
+            <option>sachets</option>
+            <option>sprays</option>
+            <option>seringues</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-lbl">Stock initial</label>
+          <input class="form-ctrl" type="number" min="0" [(ngModel)]="formNouv.stock" placeholder="0">
+        </div>
+        <div class="col-md-4">
+          <label class="form-lbl">Seuil d'alerte minimum</label>
+          <input class="form-ctrl" type="number" min="0" [(ngModel)]="formNouv.minStock" placeholder="0">
+        </div>
+        <div class="col-md-4">
+          <label class="form-lbl">Localisation</label>
+          <select class="form-ctrl">
+            <option>Armoire A</option>
+            <option>Armoire B</option>
+            <option>Réfrigérateur</option>
+            <option>Coffre-fort</option>
+          </select>
+        </div>
+        <div class="col-12 d-flex justify-content-end gap-2 mt-1">
+          <button class="btn-outline-mc" (click)="closeModal()">Annuler</button>
+          <button class="btn-primary-mc" (click)="AjouterProduit()" [disabled]="isSaving()">
+            @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            <i class="bi bi-check-lg"></i> Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+ <!-- ══ MODAL — ÉDITER UN MOUVEMENT ══ -->
+  @if (modalType() === 'editMouvement' && selectedMouvement()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+
+      <div class="modal-icon-header" style="margin-bottom:18px;">
+        <div class="modal-icon" style="background:rgba(0,150,255,.12);color:#0096ff;">
+          <i class="bi bi-pencil-fill"></i>
+        </div>
+        <div>
+          <h3 class="syne" style="font-size:17px;font-weight:800;color:var(--primary);margin-bottom:2px;">
+            Modifier le mouvement
+          </h3>
+          <p style="font-size:12px;color:var(--muted);margin:0;">
+            Référence #{{ selectedMouvement()!.numero }}
+          </p>
+        </div>
+      </div>
+
+      <div class="row g-3">
+
+        <!-- Médicament -->
+        <div class="col-md-6">
+          <label class="form-lbl">Médicament</label>
+          <input class="form-ctrl" [(ngModel)]="formEditMouv.produit" placeholder="Nom du médicament">
+        </div>
+
+        <!-- Type -->
+        <div class="col-md-6">
+          <label class="form-lbl">Type de mouvement</label>
+          <select class="form-ctrl" [(ngModel)]="formEditMouv.type">
+            <option value="Entrée">Entrée</option>
+            <option value="Sortie">Sortie</option>
+          </select>
+        </div>
+
+        <!-- Quantité -->
+        <div class="col-md-4">
+          <label class="form-lbl">Quantité <span style="color:var(--danger)">*</span></label>
+          <div class="qty-input-group">
+            <button class="qty-btn" (click)="formEditMouv.quantite = Math.max(1, formEditMouv.quantite - 1)">−</button>
+            <input class="form-ctrl qty-input" type="number" min="1" [(ngModel)]="formEditMouv.quantite">
+            <button class="qty-btn" (click)="formEditMouv.quantite = formEditMouv.quantite + 1">+</button>
+          </div>
+        </div>
+
+        <!-- Date -->
+        <div class="col-md-8">
+          <label class="form-lbl">Date & Heure</label>
+          <input class="form-ctrl" [(ngModel)]="formEditMouv.date" placeholder="JJ/MM/AA HH:MM">
+        </div>
+
+        <!-- Motif -->
+        <div class="col-12">
+          <label class="form-lbl">Motif</label>
+          <select class="form-ctrl" [(ngModel)]="formEditMouv.motif">
+            <option>Réapprovisionnement régulier</option>
+            <option>Commande urgente</option>
+            <option>Transfert inter-service</option>
+            <option>Retour non utilisé</option>
+            <option>Correction inventaire</option>
+            <option>Délivrance patient</option>
+            <option>Usage bloc opératoire</option>
+            <option>Usage service urgences</option>
+            <option>Usage USI / réanimation</option>
+            <option>Usage interne hôpital</option>
+            <option>Périmé — mise au rebut</option>
+            <option>Transfert autre service</option>
+          </select>
+        </div>
+
+        <!-- Responsable -->
+        <div class="col-12">
+          <label class="form-lbl">Responsable</label>
+          <select class="form-ctrl" [(ngModel)]="formEditMouv.responsable">
+            <option value="">— Sélectionner —</option>
+            @for (d of docteurs(); track d.id) {
+              <option [value]="'Dr. ' + d.nom">Dr. {{ d.nom }} ({{ d.specialite }})</option>
+            }
+            <option value="Inf. Biloa">Inf. Biloa</option>
+            <option value="Admin">Administration</option>
+          </select>
+        </div>
+
+        <div class="col-12 d-flex justify-content-end gap-2 mt-1">
+          <button class="btn-outline-mc" (click)="closeModal()">Annuler</button>
+          <button class="btn-primary-mc" (click)="saveEditMouvement()"
+                  [disabled]="isSaving() || formEditMouv.quantite <= 0">
+            @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            <i class="bi bi-check-lg"></i> Enregistrer les modifications
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- ══ MODAL — CONFIRMER SUPPRESSION ══ -->
+  @if (modalType() === 'deleteMouvement' && selectedMouvement()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-box" style="max-width:420px;" (click)="$event.stopPropagation()">
+
+      <div style="text-align:center;padding:8px 0 20px;">
+        <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,71,87,.12);
+                    display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+          <i class="bi bi-trash3-fill" style="font-size:22px;color:var(--danger);"></i>
+        </div>
+        <h3 class="syne" style="font-size:16px;font-weight:800;color:var(--primary);margin-bottom:6px;">
+          Supprimer ce mouvement ?
+        </h3>
+        <p style="font-size:12.5px;color:var(--muted);margin-bottom:6px;">
+          Mouvement <strong>#{{ selectedMouvement()!.numero }}</strong> —
+          <span [style.color]="selectedMouvement()!.type === 'Entrée' ? 'var(--success)' : 'var(--danger)'">
+            {{ selectedMouvement()!.type }}
+          </span>
+          de <strong>{{ selectedMouvement()!.quantite }}</strong> unités
+        </p>
+        <p style="font-size:12px;color:var(--muted);">
+          <strong>{{ selectedMouvement()!.produit }}</strong> · {{ selectedMouvement()!.date }}
+        </p>
+        <p style="font-size:11.5px;color:var(--danger);margin-top:8px;">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i>
+          Cette action est irréversible. Le stock ne sera pas recalculé automatiquement.
+        </p>
+      </div>
+
+      <div class="d-flex justify-content-center gap-2">
+        <button class="btn-outline-mc" (click)="closeModal()" style="min-width:120px;">
+          Annuler
+        </button>
+        <button class="btn-danger-mc" (click)="confirmDeleteMouvement()"
+                [disabled]="isDeleting()" style="min-width:140px;">
+          @if (isDeleting()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          <i class="bi bi-trash3-fill"></i> Supprimer
+        </button>
+      </div>
+
+    </div>
+  </div>
+  }
+  <!-- ════════════════════════════════════
+     MODAL — NOUVELLE COMMANDE
+════════════════════════════════════ -->
+  @if (modalType() === 'nouvelleCommande') {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+
+      <div class="modal-icon-header" style="margin-bottom:18px;">
+        <div class="modal-icon" style="background:rgba(255,165,2,.12);color:var(--warning);">
+          <i class="bi bi-truck"></i>
+        </div>
+        <div>
+          <h3 class="syne" style="font-size:17px;font-weight:800;color:var(--primary);margin-bottom:2px;">
+            Passer une commande
+          </h3>
+          <p style="font-size:12px;color:var(--muted);margin:0;">
+            Nouvelle commande auprès d'un fournisseur
+          </p>
+        </div>
+      </div>
+
+      <div class="row g-3">
+
+        <div class="col-12">
+          <label class="form-lbl">Fournisseur <span style="color:var(--danger)">*</span></label>
+          <select class="form-ctrl" [(ngModel)]="formCommande.fournisseur">
+            <option value="">— Sélectionner —</option>
+            <option>PharmaDistrib CM</option>
+            <option>MedExpress Africa</option>
+            <option>HealthCare Supply</option>
+            <option>BioMed Cameroun</option>
+            <option>Autre</option>
+          </select>
+        </div>
+
+        <div class="col-12">
+          <label class="form-lbl">Médicaments commandés <span style="color:var(--danger)">*</span></label>
+          <input class="form-ctrl" [(ngModel)]="formCommande.medicaments"
+                 placeholder="Ex: Amoxicilline 500mg, Paracétamol 1g (3 réf.)">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-lbl">Date de commande</label>
+          <input class="form-ctrl" [(ngModel)]="formCommande.dateCommande" placeholder="JJ/MM/AA">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-lbl">Livraison prévue <span style="color:var(--danger)">*</span></label>
+          <input class="form-ctrl" [(ngModel)]="formCommande.dateLivraison" placeholder="JJ/MM/AA">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-lbl">Montant estimé (FCFA)</label>
+          <input class="form-ctrl" type="number" min="0" [(ngModel)]="formCommande.montant" placeholder="0">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-lbl">Statut initial</label>
+          <select class="form-ctrl" [(ngModel)]="formCommande.statut">
+            <option>En attente</option>
+            <option>Confirmée</option>
+            <option>En transit</option>
+            <option>Livré</option>
+            <option>Annulée</option>
+          </select>
+        </div>
+
+        <div class="col-12 d-flex justify-content-end gap-2 mt-1">
+          <button class="btn-outline-mc" (click)="closeModal()">Annuler</button>
+          <button class="btn-primary-mc" (click)="ajouterCommande()"
+                  [disabled]="isSaving() || !formCommande.fournisseur || !formCommande.medicaments">
+            @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            <i class="bi bi-check-lg"></i> Enregistrer la commande
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  }
+
+
+<!-- ════════════════════════════════════
+     MODAL — MODIFIER UNE COMMANDE
+════════════════════════════════════ -->
+  @if (modalType() === 'editCommande' && selectedCommande()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+
+      <div class="modal-icon-header" style="margin-bottom:18px;">
+        <div class="modal-icon" style="background:rgba(0,150,255,.12);color:#0096ff;">
+          <i class="bi bi-pencil-fill"></i>
+        </div>
+        <div>
+          <h3 class="syne" style="font-size:17px;font-weight:800;color:var(--primary);margin-bottom:2px;">
+            Modifier la commande
+          </h3>
+          <p style="font-size:12px;color:var(--muted);margin:0;">
+            #{{ selectedCommande()!.numCommande }}
+          </p>
+        </div>
+      </div>
+
+      <div class="row g-3">
+
+        <div class="col-12">
+          <label class="form-lbl">Fournisseur</label>
+          <select class="form-ctrl" [(ngModel)]="formEditCommande.fournisseur">
+            <option>PharmaDistrib CM</option>
+            <option>MedExpress Africa</option>
+            <option>HealthCare Supply</option>
+            <option>BioMed Cameroun</option>
+            <option>Autre</option>
+          </select>
+        </div>
+
+        <div class="col-12">
+          <label class="form-lbl">Médicaments commandés</label>
+          <input class="form-ctrl" [(ngModel)]="formEditCommande.medicaments"
+                 placeholder="Ex: Amoxicilline 500mg, Paracétamol 1g">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-lbl">Date de commande</label>
+          <input class="form-ctrl" [(ngModel)]="formEditCommande.dateCommande" placeholder="JJ/MM/AA">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-lbl">Livraison prévue</label>
+          <input class="form-ctrl" [(ngModel)]="formEditCommande.dateLivraison" placeholder="JJ/MM/AA">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-lbl">Montant (FCFA)</label>
+          <input class="form-ctrl" type="number" min="0" [(ngModel)]="formEditCommande.montant">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-lbl">Statut</label>
+          <select class="form-ctrl" [(ngModel)]="formEditCommande.statut">
+            <option>En attente</option>
+            <option>Confirmée</option>
+            <option>En transit</option>
+            <option>Livré</option>
+            <option>Annulée</option>
+          </select>
+        </div>
+
+        <div class="col-12 d-flex justify-content-end gap-2 mt-1">
+          <button class="btn-outline-mc" (click)="closeModal()">Annuler</button>
+          <button class="btn-primary-mc" (click)="saveEditCommande()" [disabled]="isSaving()">
+            @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            <i class="bi bi-check-lg"></i> Enregistrer les modifications
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  }
+
+
+<!-- ════════════════════════════════════
+     MODAL — CONFIRMER SUPPRESSION COMMANDE
+════════════════════════════════════ -->
+  @if (modalType() === 'deleteCommande' && selectedCommande()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-box" style="max-width:420px;" (click)="$event.stopPropagation()">
+
+      <div style="text-align:center;padding:8px 0 20px;">
+        <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,71,87,.12);
+                    display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+          <i class="bi bi-trash3-fill" style="font-size:22px;color:var(--danger);"></i>
+        </div>
+        <h3 class="syne" style="font-size:16px;font-weight:800;color:var(--primary);margin-bottom:6px;">
+          Supprimer cette commande ?
+        </h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:4px;">
+          <strong>#{{ selectedCommande()!.numCommande }}</strong> —
+          {{ selectedCommande()!.fournisseur }}
+        </p>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:4px;">
+          {{ selectedCommande()!.medicaments }}
+        </p>
+        <p style="font-size:12px;font-weight:600;">
+          {{ selectedCommande()!.montant.toLocaleString('fr-FR') }} FCFA
+          &nbsp;·&nbsp;
+          <span [ngClass]="statutClass(selectedCommande()!.statut)" class="badge-mc">
+            {{ selectedCommande()!.statut }}
+          </span>
+        </p>
+        <p style="font-size:11.5px;color:var(--danger);margin-top:10px;">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i>
+          Cette action est irréversible.
+        </p>
+      </div>
+
+      <div class="d-flex justify-content-center gap-2">
+        <button class="btn-outline-mc" (click)="closeModal()" style="min-width:120px;">
+          Annuler
+        </button>
+        <button class="btn-danger-mc" (click)="confirmDeleteCommande()"
+                [disabled]="isDeleting()" style="min-width:140px;">
+          @if (isDeleting()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          <i class="bi bi-trash3-fill"></i> Supprimer
+        </button>
+      </div>
+
+    </div>
+  </div>
+  }
+</div>

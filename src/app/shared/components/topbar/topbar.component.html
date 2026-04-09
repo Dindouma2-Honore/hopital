@@ -1,0 +1,60 @@
+<!-- src/app/shared/components/topbar/topbar.component.html -->
+<header class="topbar navbar navbar-fixed">
+
+  <button class="ham-btn" (click)="toggleSidebar.emit()">
+    <i class="bi bi-list"></i>
+  </button>
+
+  <h1 class="topbar-title">{{ pageTitle }}</h1>
+
+  <div class="topbar-search">
+    <i class="bi bi-search"></i>
+    <input [(ngModel)]="searchQuery"
+           placeholder="Rechercher patients, médecins..."
+           [ngModelOptions]="{standalone:true}" />
+  </div>
+
+  <div class="topbar-actions">
+    <!-- Notifications -->
+    <div class="notif-wrapper">
+      <button class="top-btn" (click)="showNotifs = !showNotifs" title="Notifications">
+        <i class="bi bi-bell-fill"></i>
+        @if (data.unreadNotifications() > 0) {
+          <span class="notif-dot"></span>
+        }
+      </button>
+
+      @if (showNotifs) {
+        <div class="notif-dropdown">
+          <div class="notif-header">
+            <span class="syne" style="font-weight:700;font-size:14px;color:var(--primary)">Notifications</span>
+            <span class="badge-mc badge-danger-mc">{{ data.unreadNotifications() }}</span>
+          </div>
+          @for (n of data.notifications(); track n.id) {
+            <div class="notif-item" [class.unread]="!n.read">
+              <i class="bi"
+                 [class.bi-exclamation-triangle-fill]="n.type==='danger'||n.type==='warning'"
+                 [class.bi-check-circle-fill]="n.type==='success'"
+                 [class.bi-info-circle-fill]="n.type==='info'"
+                 [style.color]="n.type==='danger'?'var(--danger)':n.type==='warning'?'var(--warning)':n.type==='success'?'var(--success)':'var(--accent2)'">
+              </i>
+              <div class="notif-body">
+                <strong>{{ n.title }}</strong>
+                <div class="notif-msg">{{ n.message }}</div>
+                <div class="notif-time">{{ n.time }}</div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <button class="top-btn" title="Messages">
+      <i class="bi bi-chat-dots-fill"></i>
+    </button>
+
+    <button class="top-btn add-btn" [routerLink]="['/patients']" title="Nouveau patient">
+      <i class="bi bi-plus-lg"></i>
+    </button>
+  </div>
+</header>

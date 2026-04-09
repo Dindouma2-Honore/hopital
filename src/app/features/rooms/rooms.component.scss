@@ -1,0 +1,76 @@
+/* Ajouts à rooms.component.scss */
+
+/* Boutons d'action appraissant au survol d'une chambre */
+// .room-cell {
+//   position: relative;
+
+//   .room-actions {
+//     display: none;
+//     position: absolute;
+//     bottom: 2px;
+//     left: 50%;
+//     transform: translateX(-50%);
+//     gap: 3px;
+//     flex-direction: row;
+//   }
+
+//   &:hover .room-actions {
+//     display: flex;
+//   }
+// }
+
+.room-action-btn {
+  background: rgba(255,255,255,0.9);
+  border: 0.5px solid rgba(0,0,0,0.15);
+  border-radius: 4px;
+  padding: 2px 4px;
+  cursor: pointer;
+  color: var(--primary);
+  line-height: 1;
+
+  &:hover {
+    background: var(--bg2);
+  }
+
+  &.danger {
+    color: var(--danger);
+    &:hover {
+      background: rgba(255, 71, 87, 0.1);
+    }
+  }
+}
+
+.btn-link-mc {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+.room-grid {
+  display: flex;        // ← flex au lieu de grid
+  flex-wrap: wrap;      // ← retour à la ligne automatique
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.room-cell {
+  width: 64px;          // ← taille fixe petite
+  height: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s;
+
+  &:hover {
+    transform: scale(1.05);
+    .room-actions { opacity: 1; }
+  }
+}

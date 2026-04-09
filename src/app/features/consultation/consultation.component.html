@@ -1,0 +1,504 @@
+<!-- src/app/features/consultation/consultation.component.html -->
+<div class="page-enter">
+
+  <!-- En-tête -->
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <h2 class="page-title syne">Consultations Médicales</h2>
+      <p class="page-sub">Suivi de toutes les consultations</p>
+    </div>
+    <button class="btn-primary-mc" (click)="showModalNew.set(true)">
+      <i class="bi bi-plus-lg"></i> Nouvelle Consultation
+    </button>
+  </div>
+
+  <!-- KPIs du jour -->
+  <div class="row g-3 mb-4">
+    <div class="col-2 col-md-2">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(99,91,255,.1);color:var(--accent2);">
+          <i class="bi bi-clipboard2-pulse-fill"></i>
+        </div>
+        <div class="kpi-value">{{ stats().total }}</div>
+        <div class="kpi-label">Consultations Total</div>
+      </div>
+    </div>
+    <div class="col-4 col-md-2">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(0,194,168,.1);color:var(--accent);">
+          <i class="bi bi-activity"></i>
+        </div>
+        <div class="kpi-value" style="color:var(--accent2);">{{ stats().urgence }}</div>
+        <div class="kpi-label">Urgences</div>
+      </div>
+    </div>
+    <div class="col-4 col-md-2">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(46,213,115,.1);color:var(--success);">
+          <i class="bi bi-check2-circle"></i>
+        </div>
+        <div class="kpi-value" style="color:var(--success);">{{ stats().Controle }}</div>
+        <div class="kpi-label">Contrôles</div>
+      </div>
+    </div>
+    <div class="col-4 col-md-2">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(46,213,115,.1);color:var(--success);">
+          <i class="bi bi-check2-circle"></i>
+        </div>
+        <div class="kpi-value" style="color:var(--success);">{{ stats().Premiere }}</div>
+        <div class="kpi-label">Premières visites</div>
+      </div>
+    </div>
+    <div class="col-4 col-md-2">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(46,213,115,.1);color:var(--success);">
+          <i class="bi bi-check2-circle"></i>
+        </div>
+        <div class="kpi-value" style="color:var(--success);">{{ stats().Suivi }}</div>
+        <div class="kpi-label">Suivis</div>
+      </div>
+    </div>
+   
+  </div>
+
+  <!-- Filtres -->
+  <div class="mc-card mb-3">
+    <div class="mc-card-body" style="padding:12px 16px;">
+      <div class="row g-2 align-items-center">
+        <div class="col-md-4">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+              placeholder="Rechercher patient, médecin..." />
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select class="form-ctrl" [ngModel]="filterDoctor()" (ngModelChange)="filterDoctor.set($event)">
+            <option value="">Tous les médecins</option>
+            @for (d of docteurs(); track d.id) {
+            <option [value]="d.nom">{{ d.nom }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-ctrl" [ngModel]="filterType()" (ngModelChange)="filterType.set($event)">
+            <option value="">Tous les Types</option>
+            <option>Première visite</option>
+            <option>Urgence</option>
+            <option>Suivi</option>
+            <option>Contrôle</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn-primary-mc w-100" style="justify-content:center;">
+            <i class="bi bi-funnel-fill"></i> Filtrer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau des consultations -->
+  <div class="mc-card">
+    <div class="mc-card-header">
+      <span class="mc-card-title">
+        <i class="bi bi-list-ul me-2" style="color:var(--accent2)"></i>
+        Liste des consultations
+      </span>
+      <span style="font-size:12px;color:var(--muted);">
+        {{ filtered().length }} résultat(s)
+      </span>
+    </div>
+    <div style="overflow-x:auto;">
+      @if (isLoading()) {
+      <p style="text-align:center;padding:2rem;color:var(--muted);">
+        <i class="bi bi-arrow-repeat"></i> Chargement...
+      </p>
+      }
+      @else {
+      <table class="mc-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Patient</th>
+            <th>Médecin</th>
+            <th>Date & Heure</th>
+            <th>Motif</th>
+            <th>Type</th>
+
+            <!-- <th>Statut</th> -->
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of pageConsultation(); track c.id) {
+          <tr>
+            <td><strong>{{ c.id }}</strong></td>
+            <td>
+              <div class="patient-cell">
+                <div class="mc-avatar" style="width:30px;height:30px;font-size:10px;" [style.background]="c.color">
+                  {{ initials(c.patient) }}
+                </div>
+                <div>
+                  <div style="font-weight:600;font-size:12.5px;">{{ c.patient }}</div>
+                  <!-- <div style="font-size:10.5px;color:var(--muted);">{{ c.patientId }}</div> -->
+                </div>
+              </div>
+            </td>
+            <td>
+              <div style="font-size:12.5px;font-weight:500;">{{ c.medecin }}</div>
+              <div style="font-size:10.5px;color:var(--muted);">{{ c.specialite }}</div>
+            </td>
+            <td>
+              <div style="font-size:12.5px;font-weight:600;">{{ c.date }}</div>
+              <div style="font-size:10.5px;color:var(--muted);">{{ c.heure }}</div>
+            </td>
+            <td style="max-width:180px;">
+              <div class="motif-text">{{ c.motif }}</div>
+            </td>
+            <td>
+              <span class="badge-mc" [class]="typeBadge(c.type)">{{ c.type }}</span>
+            </td>
+
+            <!-- <td>
+              <span class="badge-mc" [class]="statusBadge(c.status)">{{ c.status }}</span>
+            </td> -->
+            <td>
+              <div style="display:flex;gap:4px;">
+                <button class="btn-outline-mc" style="padding:3px 7px;font-size:10.5px;" (click)="openDetail(c)">
+                  <i class="bi bi-eye-fill"></i>
+                </button>
+                <button class="btn-primary-mc" style="padding:3px 7px;font-size:10.5px;" (click)="openEdit(c)">
+                  <i class="bi bi-pencil-fill"></i>
+                </button>
+                <button class="btn-danger-mc" style="padding:3px 7px;font-size:10.5px;" (click)="openDelete(c)">
+                  <i class="bi bi-trash3-fill"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          }
+        </tbody>
+         <!-- Compteur bas de page -->
+        <div class="mc-card-header">
+          
+          <div style="display:flex;gap:5px;align-items:center;">
+            <span style="font-size:11px;color:var(--muted);">
+              {{ currentPage() }} / {{ totalPage() }}
+            </span>
+            <button class="btn-outline-mc" style="padding:4px 8px;font-size:11px;" [disabled]="currentPage() === 1"
+              (click)="prevPage()">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="btn-outline-mc" style="padding:4px 8px;font-size:11px;"
+              [disabled]="currentPage() === totalPage()" (click)="nextPage()">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </table>
+      }
+    </div>
+  </div>
+
+  <!-- ── Modal Nouvelle Consultation ── -->
+  @if (showModalNew()) {
+  <div class="modal-overlay" (click)="showModalNew.set(false)">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:3px;">
+        Nouvelle Consultation
+      </h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">
+        Enregistrer une nouvelle consultation médicale
+      </p>
+
+
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-lbl">Identifiant de la consultation</label>
+          <input class="form-ctrl" placeholder="Exemple C001" [(ngModel)]="form.id">
+        </div>
+        <div class="col-md-6">
+          <label class="form-lbl">Type</label>
+          <select class="form-ctrl" [(ngModel)]="form.type">
+            <option value="Première visite">Première visite</option>
+            <option value="Contrôle">Contrôle</option>
+            <option value="Urgence">Urgence</option>
+            <option value="Suivi">Suivi</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-lbl">Patient</label>
+          <select class="form-ctrl" [(ngModel)]="form.patient">
+            @for (p of patients(); track p.id) {
+            <option>{{ p.nom }} {{ p.prenom }} ({{ p.matricule }})</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-lbl">Médecin</label>
+          <select class="form-ctrl" [(ngModel)]="form.medecin">
+            @for (d of docteurs(); track d.id) {
+            <option>{{ d.nom }} — {{ d.specialite }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-lbl">Date</label>
+          <input class="form-ctrl" type="date" [(ngModel)]="form.date">
+        </div>
+        <div class="col-md-6">
+          <label class="form-lbl">Heure</label>
+          <input class="form-ctrl" type="time" [(ngModel)]="form.heure">
+        </div>
+
+        <div class="col-12">
+          <label class="form-lbl">Motif de consultation</label>
+          <input class="form-ctrl" placeholder="Décrire le motif de la visite..." [(ngModel)]="form.motif">
+        </div>
+        <div class="col-12">
+          <label class="form-lbl">Diagnostic</label>
+          <input class="form-ctrl" placeholder="Diagnostic médical..." [(ngModel)]="form.diagnostic">
+        </div>
+        <div class="col-12">
+          <label class="form-lbl">Notes & Observations</label>
+          <textarea class="form-ctrl" rows="3" [(ngModel)]="form.note"
+            placeholder="Observations cliniques, examens réalisés, suites à donner..."></textarea>
+        </div>
+        @if (saveError()) {
+        <div class="save-error"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ saveError() }}</div>
+        }
+        <div class="col-12 d-flex justify-content-end gap-2">
+          <button class="btn-outline-mc" (click)="showModalNew.set(false)" [disabled]="isSaving()">Annuler</button>
+          <button class="btn-primary-mc" (click)="AjouterConsultation()" [disabled]="isSaving()">
+
+            @if (isSaving()) {
+            <i class="bi bi-check-lg"></i> Enregistrement...
+            }
+            @else {
+            <i class="bi bi-check-lg"></i> Enregistrer
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+  <!-- ── Modal Modifier Consultation ── -->
+  @if (showModalEdit()) {
+  <div class="modal-overlay" (click)="showModalEdit.set(false)">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:3px;">
+        Modifier la Consultation
+      </h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">
+        Modifier consultation médicale
+      </p>
+
+
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-lbl">Identifiant de la consultation</label>
+          <input class="form-ctrl" placeholder="Exemple C001" [(ngModel)]="formEdit.id" name="id">
+        </div>
+        <div class="col-md-6">
+          <label class="form-lbl">Type</label>
+          <select class="form-ctrl" [(ngModel)]="formEdit.type" name="type">
+            <option value="Première visite">Première visite</option>
+            <option value="Contrôle">Contrôle</option>
+            <option value="Urgence">Urgence</option>
+            <option value="Suivi">Suivi</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-lbl">Patient</label>
+          <select class="form-ctrl" [(ngModel)]="formEdit.patient" name="patient">
+            @for (p of patients(); track p.id) {
+            <option>{{ p.nom }} {{ p.prenom }} ({{ p.matricule }})</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-lbl">Médecin</label>
+          <select class="form-ctrl" [(ngModel)]="formEdit.medecin" name="medecin">
+            @for (d of docteurs(); track d.id) {
+            <option [value]="d.nom">{{ d.nom }} — {{ d.specialite }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-lbl">Date</label>
+          <input class="form-ctrl" type="date" [(ngModel)]="formEdit.date" name="date">
+        </div>
+        <div class="col-md-6">
+          <label class="form-lbl">Heure</label>
+          <input class="form-ctrl" type="time" [(ngModel)]="formEdit.heure" name="heure">
+        </div>
+
+        <div class="col-12">
+          <label class="form-lbl">Motif de consultation</label>
+          <input class="form-ctrl" placeholder="Décrire le motif de la visite..." [(ngModel)]="formEdit.motif"
+            name="motif">
+        </div>
+        <div class="col-12">
+          <label class="form-lbl">Diagnostic</label>
+          <input class="form-ctrl" placeholder="Diagnostic médical..." [(ngModel)]="formEdit.diagnostic"
+            name="diagnostic">
+        </div>
+        <div class="col-12">
+          <label class="form-lbl">Notes & Observations</label>
+          <textarea class="form-ctrl" rows="3" [(ngModel)]="formEdit.note" name="note"
+            placeholder="Observations cliniques, examens réalisés, suites à donner..."></textarea>
+        </div>
+        @if (saveError()) {
+        <div class="save-error"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ saveError() }}</div>
+        }
+        <div class="col-12 d-flex justify-content-end gap-2">
+          <button class="btn-outline-mc" (click)="closeEdit()" [disabled]="isSaving()">Annuler</button>
+          <button class="btn-primary-mc" (click)="ModifierConsultation()" [disabled]="isSaving()">
+
+            @if (isSaving()) {
+            <i class="bi bi-check-lg"></i> Modification...
+            }
+            @else {
+            <i class="bi bi-check-lg"></i> Modifier
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- ── Modal Détail Consultation ── -->
+  @if (showModalDelete()) {
+  <div class="modal-overlay" (click)="showModalDelete.set(false)">
+    <div class="modal-box" style="max-width:420px;text-align:center;" (click)="$event.stopPropagation()">
+      <div style="font-size:48px;margin-bottom:12px;">🗑️</div>
+      <h3 class="syne" style="font-size:18px;font-weight:800;color:#e53e3e;margin-bottom:8px;">
+        Supprimer cette Consultation ?
+      </h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:6px;">
+        Consultation <strong>{{ ConToDelete()?.id }}</strong> de
+        <strong>{{ ConToDelete()?.patient }}</strong>
+        consulté par <strong>{{ ConToDelete()?.medecin }}</strong>.
+      </p>
+      <p style="font-size:12px;color:#e53e3e;margin-bottom:24px;">Cette action est irréversible.</p>
+      <div class="d-flex justify-content-center gap-3">
+        <button class="btn-outline-mc" (click)="showModalDelete.set(false)">Annuler</button>
+        <button class="btn-danger-mc" (click)="supprimerConsultation()" [disabled]="isSaving()">
+          @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          <i class="bi bi-trash3"></i> Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+  <!-- ── Modal Détail Consultation ── -->
+  @if (showModalDetail() && selectedConsult()) {
+  <div class="modal-overlay" (click)="showModalDetail.set(false)">
+    <div class="modal-box modal-wide" (click)="$event.stopPropagation()">
+      <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+          <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:2px;">
+            Consultation {{ selectedConsult()!.id }}
+          </h3>
+          <p style="font-size:12px;color:var(--muted);margin:0;">
+            {{ selectedConsult()!.date }} à {{ selectedConsult()!.heure }}
+
+          </p>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <span class="badge-mc" [class]="typeBadge(selectedConsult()!.type)">
+            {{ selectedConsult()!.type }}
+          </span>
+          <span class="badge-mc" [class]="statusBadge(selectedConsult()!.status)">
+            {{ selectedConsult()!.status }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Infos patient + médecin -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <div class="detail-card">
+            <div class="detail-card-label">Patient</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+              <div class="mc-avatar" style="width:40px;height:40px;border-radius:10px;font-size:14px;"
+                [style.background]="selectedConsult()!.color">
+                {{ initials(selectedConsult()!.patient) }}
+              </div>
+              <div>
+                <div style="font-weight:600;font-size:13.5px;color:var(--primary);">
+                  {{ selectedConsult()!.patient }}
+                </div>
+                <!-- <div style="font-size:11.5px;color:var(--muted);">
+                    {{ selectedConsult()!.patientId }}
+                  </div> -->
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="detail-card">
+            <div class="detail-card-label">Médecin traitant</div>
+            <div style="margin-top:8px;">
+              <div style="font-weight:600;font-size:13.5px;color:var(--primary);">
+                {{ selectedConsult()!.medecin }}
+              </div>
+              <div style="font-size:11.5px;color:var(--muted);">
+                {{ selectedConsult()!.specialite }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Motif -->
+      <div class="detail-section mb-3">
+        <div class="detail-section-title">
+          <i class="bi bi-chat-square-text-fill me-2" style="color:var(--accent2)"></i>
+          Motif de consultation
+        </div>
+        <div class="detail-content">{{ selectedConsult()!.motif }}</div>
+      </div>
+
+      <!-- Diagnostic -->
+      <div class="detail-section mb-3">
+        <div class="detail-section-title">
+          <i class="bi bi-clipboard2-pulse-fill me-2" style="color:var(--accent)"></i>
+          Diagnostic
+        </div>
+        <div class="detail-content" style="font-weight:600;">
+          {{ selectedConsult()!.diagnostic }}
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="detail-section mb-4">
+        <div class="detail-section-title">
+          <i class="bi bi-journal-text me-2" style="color:var(--warning)"></i>
+          Notes & Observations
+        </div>
+        <div class="detail-content">{{ selectedConsult()!.note }}</div>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2">
+        <button class="btn-outline-mc" (click)="showModalDetail.set(false)">
+          <i class="bi bi-x-lg"></i> Fermer
+        </button>
+        <button class="btn-outline-mc">
+          <i class="bi bi-printer-fill"></i> Imprimer
+        </button>
+        <button class="btn-primary-mc">
+          <i class="bi bi-pencil-fill"></i> Modifier
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+
+</div>

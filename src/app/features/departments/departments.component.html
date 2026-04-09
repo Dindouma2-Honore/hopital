@@ -1,0 +1,211 @@
+<div class="page-enter">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h2 class="page-title syne">Départements & Services</h2><p class="page-sub">{{departments().length}} départements</p></div>
+    <button class="btn-primary-mc" (click)="openAdd()"><i class="bi bi-plus-lg"></i> Nouveau Département</button>
+  </div>
+  <div class="row g-3">
+    @for (d of departments(); track d.id) {
+      <div class="col-xl-2 col-lg-3 col-md-4 col-6">
+        <div class="dept-card">
+          <!-- <div class="dept-icon" [style.background]="d.bgColor" [style.color]="d.color">{{ d.icon }}</div> -->
+          <div class="dept-name">{{ d.nom }}</div>
+          <div class="dept-sub">{{ d.nombreStaff }} personnels{{ d.nombreLit > 0 ? ' • ' + d.nombreLit + ' lits' : '' }}</div>
+          @if (d.nombreLit > 0) {
+            <div style="margin-top:10px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                <span style="font-size:10px;color:var(--muted);">Occupation</span>
+                <span style="font-size:10px;font-weight:700;"
+                  [style.color]="d.occupation > 89 ? 'var(--danger)' : d.occupation > 75 ? 'var(--warning)' : 'var(--success)'">
+                  {{ d.occupation }}%
+                </span>
+              </div>
+              <div class="mc-progress">
+                <div class="mc-progress-bar"
+                     [style.width.%]="d.occupation"
+                     [style.background]="d.occupation > 89 ? 'var(--danger)' : d.occupation > 75 ? 'var(--warning)' : d.color">
+                </div>
+              </div>
+              <div style="display:flex;gap:6px;justify-content:center; margin-top: 5px;">
+            <button class="btn-primary-mc" style="padding:5px 10px;font-size:11px;" (click)="openEdit(d)"><i class="bi bi-pencil-fill"></i></button>
+            <button class="btn-danger-mc" style="padding:5px 10px;font-size:11px;" (click)="openDelete(d)"><i class="bi bi-trash3-fill"></i> </button>
+          </div>
+            </div>
+          } @else {
+            <div style="font-size:11px;color:var(--muted);margin-top:8px;">Service ambulatoire</div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+   <!-- ════════════════════════════════════════════════════════
+       MODAL — AJOUTER UN DEPARTEMENT
+  ════════════════════════════════════════════════════════ -->
+  @if (showModalAdd()) {
+    <div class="modal-overlay" >
+      <div class="modal-box" (click)="$event.stopPropagation()">
+
+        <div class="modal-header-custom">
+          <div class="modal-icon-wrap" style="background:rgba(0,194,168,.12);color:var(--accent);">
+            <i class="bi bi-person-plus-fill"></i>
+          </div>
+          <div>
+            <h3 class="syne modal-title-text">Nouveau Departement</h3>
+            <p class="modal-sub-text">Enregistrement dans la base de données</p>
+          </div>
+        </div>
+
+        <ng-container *ngTemplateOutlet="patientFormTpl"></ng-container>
+
+        @if (saveError()) {
+          <div class="save-error"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ saveError() }}</div>
+        }
+
+        <div class="modal-footer-btns">
+          <button class="btn-outline-mc" (click)="closeAdd()" [disabled]="isSaving()">
+            Annuler
+          </button>
+          <button class="btn-primary-mc" (click)="confirmAdd()"
+                  [disabled]="isSaving() || !formValid()">
+            @if (isSaving()) {
+              <span class="spinner-sm"></span> Enregistrement...
+            } @else {
+              <i class="bi bi-check-lg"></i> Enregistrer
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+   <!-- ════════════════════════════════════════════════════════
+       MODAL — MODIFIER DEPARTEMENT
+  ════════════════════════════════════════════════════════ -->
+  @if (showModalEdit()) {
+    <div class="modal-overlay" >
+      <div class="modal-box" (click)="$event.stopPropagation()">
+
+        <div class="modal-header-custom">
+          <div class="modal-icon-wrap" style="background:rgba(0,194,168,.12);color:var(--accent);">
+            <i class="bi bi-person-plus-fill"></i>
+          </div>
+          <div>
+            <h3 class="syne modal-title-text">Modifier le Departemt</h3>
+            <p class="modal-sub-text">Modifier à la base de données</p>
+          </div>
+        </div>
+
+        <ng-container *ngTemplateOutlet="patientFormTpl"></ng-container>
+
+        @if (saveError()) {
+          <div class="save-error"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ saveError() }}</div>
+        }
+
+        <div class="modal-footer-btns">
+          <button class="btn-outline-mc" (click)="closeAdd()" [disabled]="isSaving()">
+            Annuler
+          </button>
+          <button class="btn-primary-mc" (click)="confirmEdit()"
+                  [disabled]="isSaving() || !formValid()">
+            @if (isSaving()) {
+              <span class="spinner-border spinner-border-sm me-1"></span> modification...
+            } @else {
+              <i class="bi bi-check-lg"></i> Modifier
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+<!-- ==============================================
+  MODAL SUPPRESSION DE DEPARTEMENT
+==================================================-->
+   @if (showModalDelete()) {
+     <div class="modal-overlay" (click)="showModalDelete.set(false)">
+    <div class="modal-box" style="max-width:420px;text-align:center;" (click)="$event.stopPropagation()">
+      <div style="font-size:48px;margin-bottom:12px;">🗑️</div>
+      <h3 class="syne" style="font-size:18px;font-weight:800;color:#e53e3e;margin-bottom:8px;">
+        Supprimer ce Departement ?
+      </h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:6px;">
+       Vous êtes sur le point de supprimer le departement de <strong>{{DepToDelete()?.nom }}</strong> 
+      </p>
+      <p style="font-size:12px;color:#e53e3e;margin-bottom:24px;">Cette action est irréversible.</p>
+      <div class="d-flex justify-content-center gap-3">
+        <button class="btn-outline-mc" (click)="showModalDelete.set(false)">Annuler</button>
+        <button class="btn-danger-mc" (click)="supprimerDepartemet()" [disabled]="isSaving()">
+          @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          <i class="bi bi-trash3"></i> Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+   <!-- ════════════════════════════════════════════════════════
+       TEMPLATE FORMULAIRE — réutilisé par Ajouter ET Modifier
+  ════════════════════════════════════════════════════════ -->
+  <ng-template #patientFormTpl>
+    <div class="row g-3 mb-3">
+
+      <!-- Matricule — readonly en modification -->
+      <div class="col-6">
+        <label class="form-lbl">
+          IDENTIFIANT <span style="color:var(--danger)">*</span>
+        </label>
+        <input class="form-ctrl" [(ngModel)]="form.id" name="id"
+               [readonly]="showModalEdit()"
+               placeholder="Ex: DEP001"
+               [style.opacity]="showModalEdit() ? '0.6' : '1'">
+      </div>
+
+      <div class="col-6">
+        <label class="form-lbl">Icon <span style="color:var(--danger)">*</span></label>
+        <input class="form-ctrl" [(ngModel)]="form.icon" placeholder="Icon du departement" name="icon">
+      </div>
+
+      <div class="col-6">
+            <label class="form-lbl">departement</label>
+            <select class="form-ctrl" [(ngModel)]="form.nom" name="nom">
+              <option>Cardiologie</option>
+              <option>Neurologie</option>
+              <option>Pédiatrie</option>
+              <option>Chirurgie</option>
+              <option>Urgences</option>
+              <option>Radiologie</option>
+              <option>Oncologie</option>
+            </select>
+          </div>
+
+      <div class="col-6">
+        <label class="form-lbl">nombre de Staff <span style="color:var(--danger)">*</span></label>
+        <input class="form-ctrl" type="number" min="0" max="150"
+               [(ngModel)]="form.nombreStaff" name="nombreStaff" placeholder="Nombre des staffs">
+      </div>
+
+      <div class="col-6">
+        <label class="form-lbl">nombe de lit</label>
+        <input class="form-ctrl" type="number" min="0" max="150"
+               [(ngModel)]="form.nombreLit" name="nombreLit" placeholder="Nombre des lits">
+      </div>
+
+      
+
+      <div class="col-6">
+        <label class="form-lbl">Pourcentage Occupation</label>
+        <input class="form-ctrl" type="text" [(ngModel)]="form.occupation" name="occupation">
+      </div>
+
+
+
+    </div>
+
+    <!-- Validation visuelle -->
+    @if (!formValid() && (form.nom || form.id)) {
+      <div class="form-validation-hint">
+        <i class="bi bi-info-circle-fill me-1"></i>
+        Champs obligatoires : Identifiant et Departement
+      </div>
+    }
+  </ng-template>
+</div>

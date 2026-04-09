@@ -1,0 +1,117 @@
+<div class="page-enter">
+  <h2 class="page-title syne mb-1">Statistiques & Rapports</h2>
+  <p class="page-sub">Indicateurs de performance hospitalière — Exercice 2026</p>
+
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-md-3">
+      <div class="mc-card"><div class="mc-card-body" style="padding:16px;text-align:center;">
+        <div style="font-size:26px;margin-bottom:4px;">👥</div>
+        <div class="syne" style="font-size:24px;font-weight:800;color:var(--primary);">2,847</div>
+        <div style="font-size:11.5px;color:var(--muted);">Patients ce mois</div>
+      </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="mc-card"><div class="mc-card-body" style="padding:16px;text-align:center;">
+        <div style="font-size:26px;margin-bottom:4px;">⚕️</div>
+        <div class="syne" style="font-size:24px;font-weight:800;color:var(--accent2);">342</div>
+        <div style="font-size:11.5px;color:var(--muted);">Chirurgies ce mois</div>
+      </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="mc-card"><div class="mc-card-body" style="padding:16px;text-align:center;">
+        <div style="font-size:26px;margin-bottom:4px;">😊</div>
+        <div class="syne" style="font-size:24px;font-weight:800;color:var(--success);">92%</div>
+        <div style="font-size:11.5px;color:var(--muted);">Satisfaction patient</div>
+      </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="mc-card"><div class="mc-card-body" style="padding:16px;text-align:center;">
+        <div style="font-size:26px;margin-bottom:4px;">📅</div>
+        <div class="syne" style="font-size:24px;font-weight:800;color:var(--warning);">4.2j</div>
+        <div style="font-size:11.5px;color:var(--muted);">Durée moy. séjour</div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="mc-card">
+        <div class="mc-card-header"><span class="mc-card-title"><i class="bi bi-bar-chart-fill me-2" style="color:var(--accent)"></i>Admissions par Service (2026)</span></div>
+        <div class="mc-card-body">
+          <div class="bar-chart">
+            @for (a of admissions; track a.name) {
+              <div class="bar-item">
+                <div class="bar-val">{{ a.v }}</div>
+                <div class="bar-fill" [style.height.px]="height(a.v)" [style.background]="a.c"></div>
+                <div class="bar-lbl">{{ a.name }}</div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="mc-card">
+        <div class="mc-card-header"><span class="mc-card-title"><i class="bi bi-award-fill me-2" style="color:var(--accent2)"></i>Indicateurs Qualité</span></div>
+        <div class="mc-card-body">
+          <div class="mb-4">
+            <div class="d-flex justify-content-between mb-1">
+              <span style="font-size:12.5px;font-weight:600;">Satisfaction patient</span>
+              <span style="font-size:12.5px;font-weight:700;color:var(--success);">92%</span>
+            </div>
+            <div class="mc-progress"><div class="mc-progress-bar" style="width:92%"></div></div>
+          </div>
+          <div class="mb-4">
+            <div class="d-flex justify-content-between mb-1">
+              <span style="font-size:12.5px;font-weight:600;">Taux de réadmission</span>
+              <span style="font-size:12.5px;font-weight:700;color:var(--warning);">8.4%</span>
+            </div>
+            <div class="mc-progress"><div class="mc-progress-bar" style="width:8.4%;background:linear-gradient(90deg,var(--warning),#e67e22);"></div></div>
+          </div>
+          <div class="mb-4">
+            <div class="d-flex justify-content-between mb-1">
+              <span style="font-size:12.5px;font-weight:600;">Durée moy. séjour</span>
+              <span style="font-size:12.5px;font-weight:700;color:var(--accent2);">4.2 jours</span>
+            </div>
+            <div class="mc-progress"><div class="mc-progress-bar" style="width:60%;background:linear-gradient(90deg,var(--accent2),#7c3aed);"></div></div>
+          </div>
+          <div class="mb-4">
+            <div class="d-flex justify-content-between mb-1">
+              <span style="font-size:12.5px;font-weight:600;">Taux d'occupation lits</span>
+              <span style="font-size:12.5px;font-weight:700;color:var(--accent);">83%</span>
+            </div>
+            <div class="mc-progress"><div class="mc-progress-bar" style="width:83%"></div></div>
+          </div>
+          <div>
+            <div class="d-flex justify-content-between mb-1">
+              <span style="font-size:12.5px;font-weight:600;">Mortalité hospitalière</span>
+              <span style="font-size:12.5px;font-weight:700;color:var(--success);">1.2%</span>
+            </div>
+            <div class="mc-progress"><div class="mc-progress-bar" style="width:1.2%;background:linear-gradient(90deg,var(--success),#27ae60);"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="mc-card">
+        <div class="mc-card-header"><span class="mc-card-title"><i class="bi bi-table me-2" style="color:var(--warning)"></i>Rapport Mensuel — Mars 2026</span>
+          <button class="btn-outline-mc" style="padding:5px 10px;font-size:11px;"><i class="bi bi-download"></i> Télécharger PDF</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="mc-table">
+            <thead><tr><th>Indicateur</th><th>Valeur Mars</th><th>Valeur Fév.</th><th>Variation</th><th>Objectif</th><th>Statut</th></tr></thead>
+            <tbody>
+              <tr><td>Patients hospitalisés</td><td><strong>2,847</strong></td><td>2,631</td><td style="color:var(--success);">+8.2%</td><td>2,800</td><td><span class="badge-mc badge-success-mc">✅ Atteint</span></td></tr>
+              <tr><td>Taux occupation lits</td><td><strong>83%</strong></td><td>78%</td><td style="color:var(--success);">+5pt</td><td>85%</td><td><span class="badge-mc badge-warning-mc">⏳ Proche</span></td></tr>
+              <tr><td>Durée moy. séjour</td><td><strong>4.2 jours</strong></td><td>4.5 jours</td><td style="color:var(--success);">-6.7%</td><td>4.0 jours</td><td><span class="badge-mc badge-warning-mc">⏳ Proche</span></td></tr>
+              <tr><td>Satisfaction patient</td><td><strong>92%</strong></td><td>89%</td><td style="color:var(--success);">+3pt</td><td>90%</td><td><span class="badge-mc badge-success-mc">✅ Atteint</span></td></tr>
+              <tr><td>Taux réadmission 30j</td><td><strong>8.4%</strong></td><td>9.1%</td><td style="color:var(--success);">-7.7%</td><td>&lt;8%</td><td><span class="badge-mc badge-warning-mc">⏳ Proche</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

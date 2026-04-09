@@ -1,0 +1,445 @@
+<div class="page-enter">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="page-title syne">Dossiers Médicaux Électroniques</h2>
+      <p class="page-sub">Gestion complète des dossiers patients</p>
+    </div>
+    <button class="btn-primary-mc" (click)="openAdd()" ><i class="bi bi-file-earmark-plus-fill"></i> Nouveau Dossier</button>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <div class="mc-card mb-3">
+        <div class="mc-card-header"><span class="mc-card-title">Rechercher un dossier</span></div>
+        <div class="mc-card-body">
+          <div class="mb-3">
+            <label class="form-lbl">Nom du Patient</label>
+            <input class="form-ctrl"  [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+              placeholder="Nom, prénom..."></div>
+          <div class="mb-3">
+            <label class="form-lbl">Numéro de dossier</label>
+            <input class="form-ctrl" [ngModel]="filterID()" (ngModelChange)="filterID.set($event)"
+              placeholder="#ID..."></div>
+
+          <button class="btn-primary-mc w-100" style="justify-content:center;" type="submit">
+            <i class="bi bi-search"></i>
+            Rechercher</button>
+        </div>
+      </div>
+
+      <div class="mc-card">
+        <div class="mc-card-header"><span class="mc-card-title">Dossiers récents</span></div>
+        <div class="mc-card-body" style="padding:10px 14px;">
+          @for (p of filtered().slice(0,5); track p.id) {
+          <div class="dossier-item">
+            <div class="mc-avatar" style="width:32px;height:32px;font-size:11px;" [style.background]="p.color">
+              {{ (p.patient).toUpperCase() }}
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;">{{ p.patient }}</div>
+              <div style="font-size:11px;color:var(--muted);">{{ p.id }} • {{ p.departement }}</div>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      @for(d of pageDossier(); track d.id){
+      <div class="mc-card">
+        <div class="mc-card-header">
+          <span class="mc-card-title">Dossier —{{d.patient}} </span>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-outline-mc" style="padding:5px 10px;font-size:11px;"><i
+                class="bi bi-printer-fill"></i></button>
+            <button class="btn-primary-mc" style="padding:5px 10px;font-size:11px;" (click)="openEdit(d)"><i class="bi bi-pencil-fill"></i>
+              Modifier</button>
+          </div>
+        </div>
+        <div class="mc-card-body">
+          <!-- Patient info -->
+          <div
+            style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg);border-radius:12px;margin-bottom:16px;">
+            <div class="mc-avatar"
+              style="width:54px;height:54px;border-radius:14px;font-size:20px;background:linear-gradient(135deg,var(--accent),var(--accent-dk));">
+              BJ</div>
+            <div>
+              <div class="syne" style="font-weight:700;font-size:16px;color:var(--primary);">{{d.patient}}</div>
+              <div style="font-size:11.5px;color:var(--muted);">Dossier {{d.id}} • {{d.sexe}} • {{d.age}} ans • Groupe
+                {{d.bloodGroup}}</div>
+              <div style="margin-top:4px;"><span class="badge-mc badge-info-mc">{{d.departement}}</span></div>
+            </div>
+          </div>
+
+          <!-- Vitals -->
+          <div class="row g-2 mb-4">
+            <div class="col-6 col-md-3">
+              <div class="vital-card">
+                <div class="vital-icon">❤️</div>
+                <div>
+                  <div class="vital-label">FC</div>
+                  <div class="vital-value">{{d.frequence }}</div>
+                  <div class="vital-unit">bpm</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="vital-card">
+                <div class="vital-icon">🩸</div>
+                <div>
+                  <div class="vital-label">TA</div>
+                  <div class="vital-value">{{d.tension}}</div>
+                  <div class="vital-unit">mmHg</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="vital-card">
+                <div class="vital-icon">🌡️</div>
+                <div>
+                  <div class="vital-label">Temp.</div>
+                  <div class="vital-value">{{d.temperature}}</div>
+                  <div class="vital-unit">°C</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="vital-card">
+                <div class="vital-icon">💨</div>
+                <div>
+                  <div class="vital-label">SpO2</div>
+                  <div class="vital-value">{{d.spo2}}</div>
+                  <div class="vital-unit">%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Antécédents -->
+          <div class="syne" style="font-weight:700;margin-bottom:8px;color:var(--primary);">Antécédents & Allergies
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;">
+            <span class="badge-mc badge-warning-mc">{{d.antecedent}}</span>
+            
+            <span class="badge-mc badge-danger-mc">⚠️ Allergie : {{d.allergie}}</span>
+            
+          </div>
+
+          <!-- Traitements -->
+          <div class="syne" style="font-weight:700;margin-bottom:8px;color:var(--primary);">Traitement en Cours</div>
+          <table class="mc-table">
+            <thead>
+              <tr>
+                <th>Médicament</th>
+                <th>Dosage</th>
+                <th>Fréquence</th>
+                <th>Début</th>
+                <th>Prescripteur</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (med of d.medicament; track med.produit) {
+              <tr>
+                <td>{{med.produit}}</td>
+                <td>{{med.dosage}}</td>
+                <td>{{med.frequence}}</td>
+                <td>{{med.debut}}</td>
+                <td>Dr {{med.prescripteur}}</td>
+              </tr>
+             
+             }
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+      }
+       <!-- Compteur bas de page -->
+            <div class="mc-card-header">
+
+              <div style="display:flex;gap:5px;align-items:center;">
+                <span style="font-size:11px;color:var(--muted);" class="d-flex">
+                  {{ currentPage() }} / {{ totalPage() }}
+                </span>
+                <button class="btn-outline-mc" style="padding:4px 8px;font-size:11px;" [disabled]="currentPage() === 1"
+                  (click)="prevPage()">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <button class="btn-outline-mc" style="padding:4px 8px;font-size:11px;"
+                  [disabled]="currentPage() === totalPage()" (click)="nextPage()">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+    </div>
+  </div>
+   <!-- ═══════════════════════════════════════════════════════
+       MODAL — NOUVEAU DOSSIER MEDICAL
+       ═══════════════════════════════════════════════════════ -->
+  @if (showModalNew()) {
+    <div class="modal-overlay" (click)="showModalNew.set(false)">
+      <div class="modal-box modal-wide" (click)="$event.stopPropagation()">
+        <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:3px;">
+          📋 Nouveau dossier medical
+        </h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Rédiger un nouveau médical</p>
+
+        @if (saveError()) {
+          <div class="alert alert-danger py-2 mb-3" style="font-size:13px;">{{ saveError() }}</div>
+        }
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label class="form-lbl">ID</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="form.id">
+          </div>
+          <div class="col-md-4">
+
+            <label class="form-lbl">Patient</label>
+            <select class="form-ctrl" [(ngModel)]="form.patient">
+              <option value="">-- Choisir un patient --</option>
+              @for (p of patients(); track p.id) {
+                <option [value]="p.nom + ' ' + p.prenom">{{ p.nom }} {{ p.prenom }} {{p.id}}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Age</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="form.age">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Sexe</label>
+            <select class="form-ctrl" [(ngModel)]="form.sexe">
+              <option>Masculin</option><option>Feminin</option>
+              
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Departement</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="form.departement">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Groupe sanguin</label>
+            <select class="form-ctrl" [(ngModel)]="form.bloodGroup">
+              <option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB-</option>
+              <option>AB+</option><option>O-</option><option>O+</option>
+              
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Frequence Cardiaque</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="form.frequence">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Température</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="form.temperature">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Tension</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="form.tension">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Spo2</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="form.spo2" placeholder="Exemple 85%">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Allergies</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="form.allergie">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Antecedents</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="form.antecedent">
+          </div>
+        </div>
+
+        <!-- Lignes médicaments -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:12.5px;font-weight:700;color:var(--primary);">
+            <i class="bi bi-capsule-pill me-1" style="color:var(--accent)"></i> Médicaments prescrits
+          </div>
+          <button class="btn-outline-mc" style="padding:4px 10px;font-size:11px;" (click)="ajouterLigneMedAdd()">
+            <i class="bi bi-plus-lg"></i> Ajouter ligne
+          </button>
+        </div>
+
+        @for (med of form.medicament; track $index; let i = $index) {
+          <div class="med-form-row mb-2" style="display:flex;gap:8px;align-items:flex-start;">
+            <div style="font-weight:800;font-size:15px;color:var(--muted);width:22px;padding-top:8px;text-align:center;">
+              {{ i + 1 }}
+            </div>
+            <div class="row g-2 flex-1">
+              <div class="col-md-4">
+                <input class="form-ctrl" placeholder="Médicament ..." [(ngModel)]="med.produit">
+              </div>
+              <div class="col-md-4">
+                <input class="form-ctrl" placeholder="dosage..." [(ngModel)]="med.dosage">
+              </div>
+              <div class="col-md-4">
+                <input class="form-ctrl" placeholder="Fréquence..." [(ngModel)]="med.frequence">
+              </div>
+              <div class="col-md-4">
+                <input class="form-ctrl" type="date" placeholder="Debut" [(ngModel)]="med.debut">
+              </div>
+              <div class="col-md-4">
+                <input class="form-ctrl" placeholder="Medecin" [(ngModel)]="med.prescripteur">
+              </div>
+              <div class="col-md-4">
+                <input class="form-ctrl" placeholder="Avertissement (optionnel)" [(ngModel)]="med.warning">
+              </div>
+              <div class="col-md-2 d-flex align-items-center">
+                <button style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:15px;"
+                        title="Supprimer cette ligne" (click)="supprimerLigneMedAdd(i)">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+
+        
+        <div class="d-flex justify-content-end gap-2">
+          <button class="btn-outline-mc" (click)="showModalNew.set(false)">Annuler</button>
+          <button class="btn-primary-mc" (click)="AjouterDossier()" [disabled]="isSaving()">
+            @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            <i class="bi bi-check-lg"></i> Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+    <!-- ═══════════════════════════════════════════════════════
+       MODAL — ModIFIER DOSSIER MEDICAL
+       ═══════════════════════════════════════════════════════ -->
+  @if (showModalEdit()) {
+    <div class="modal-overlay" (click)="showModalEdit.set(false)">
+      <div class="modal-box modal-wide" (click)="$event.stopPropagation()">
+        <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:3px;">
+          📋 Modifier le dossier medical
+        </h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Modifier un dossier médical</p>
+
+        @if (saveError()) {
+          <div class="alert alert-danger py-2 mb-3" style="font-size:13px;">{{ saveError() }}</div>
+        }
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label class="form-lbl">ID</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="formEdit.id">
+          </div>
+          <div class="col-md-4">
+
+            <label class="form-lbl">Patient</label>
+            <select class="form-ctrl" [(ngModel)]="formEdit.patient">
+              <option value="">-- Choisir un patient --</option>
+              @for (p of patients(); track p.id) {
+                <option [value]="p.nom + ' ' + p.prenom">{{ p.nom }} {{ p.prenom }} {{p.id}}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Age</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="formEdit.age">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Sexe</label>
+            <select class="form-ctrl" [(ngModel)]="formEdit.sexe">
+              <option>Masculin</option><option>Feminin</option>
+              
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Departement</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="formEdit.departement">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Groupe sanguin</label>
+            <select class="form-ctrl" [(ngModel)]="formEdit.bloodGroup">
+              <option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB-</option>
+              <option>AB+</option><option>O-</option><option>O+</option>
+              
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Frequence Cardiaque</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="formEdit.frequence">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Température</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="formEdit.temperature">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Tension</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="formEdit.tension">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Spo2</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="formEdit.spo2" placeholder="Exemple 85%">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Allergies</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="formEdit.allergie">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Antecedents</label>
+            <input class="form-ctrl" type="text" [(ngModel)]="formEdit.antecedent">
+          </div>
+        </div>
+
+        <!-- Lignes médicaments -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:12.5px;font-weight:700;color:var(--primary);">
+            <i class="bi bi-capsule-pill me-1" style="color:var(--accent)"></i> Médicaments prescrits
+          </div>
+          <button class="btn-outline-mc" style="padding:4px 10px;font-size:11px;" (click)="ajouterLigneMedEdit()">
+            <i class="bi bi-plus-lg"></i> Ajouter ligne
+          </button>
+        </div>
+
+        @for (med of formEdit.medicament; track $index; let i = $index) {
+          <div class="med-form-row mb-2" style="display:flex;gap:8px;align-items:flex-start;">
+            <div style="font-weight:800;font-size:15px;color:var(--muted);width:22px;padding-top:8px;text-align:center;">
+              {{ i + 1 }}
+            </div>
+            <div class="row g-2 flex-1">
+              <div class="col-md-4">
+                <input class="form-ctrl" placeholder="Médicament ..." [(ngModel)]="med.produit">
+              </div>
+              <div class="col-md-4">
+                <input class="form-ctrl" placeholder="dosage..." [(ngModel)]="med.dosage">
+              </div>
+              <div class="col-md-4">
+                <input class="form-ctrl" placeholder="Fréquence..." [(ngModel)]="med.frequence">
+              </div>
+              <div class="col-md-4">
+                <input class="form-ctrl" type="date" placeholder="Debut" [(ngModel)]="med.debut">
+              </div>
+              <div class="col-md-4">
+                <input class="form-ctrl" placeholder="Medecin" [(ngModel)]="med.prescripteur">
+              </div>
+              <div class="col-md-4">
+                <input class="form-ctrl" placeholder="Avertissement (optionnel)" [(ngModel)]="med.warning">
+              </div>
+              <div class="col-md-2 d-flex align-items-center">
+                <button style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:15px;"
+                        title="Supprimer cette ligne" (click)="supprimerLigneMedEdit(i)">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+
+        
+        <div class="d-flex justify-content-end gap-2">
+          <button class="btn-outline-mc" (click)="showModalEdit.set(false)">Annuler</button>
+          <button class="btn-primary-mc" (click)="ModifierDossier()" [disabled]="isSaving()">
+            @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            <i class="bi bi-check-lg"></i> Modifier
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

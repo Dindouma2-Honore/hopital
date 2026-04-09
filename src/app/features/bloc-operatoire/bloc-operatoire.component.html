@@ -1,0 +1,237 @@
+<div class="page-enter">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="page-title syne">Bloc Opératoire</h2>
+      <p class="page-sub"> {{operations().length}} salles d'opération — {{encours()}} en cours — {{planifie()}}
+        planifiées</p>
+    </div>
+    <button class="btn-primary-mc" (click)="showModalAdd.set(true)"><i class="bi bi-plus-lg"></i> Planifier Op.</button>
+  </div>
+
+  <!-- Bloc status grid -->
+  <div class="row g-3 mb-4">
+    @for (b of blocStatus(); track b.b) {
+    <div class="col-md-2 col-4">
+      <div class="bloc-cell" [style.border-color]="b.c + '55'">
+        <div style="font-size:28px;margin-bottom:6px;">{{ b.ic }}</div>
+        <div class="bloc-name">{{ b.b }}</div>
+        <div style="font-size:10.5px;font-weight:600;" [style.color]="b.c">{{ b.lb }}</div>
+      </div>
+    </div>
+    }
+  </div>
+
+  <!-- Operations table -->
+  <div class="mc-card">
+    <div class="mc-card-header">
+      <span class="mc-card-title"><i class="bi bi-scissors me-2" style="color:var(--accent)"></i>Programme Opératoire du
+        Jour</span>
+      <input class="form-ctrl w-50" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+        placeholder="Rechercher les patients">
+
+      <button class="btn-primary-mc w-25 h-25" style="padding:5px 10px;font-size:11px;"><i
+          class="bi bi-arrow-clockwise"></i> Filtrer</button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="mc-table">
+        <thead>
+          <tr>
+            <th>Salle</th>
+            <th>Patient</th>
+            <th>Intervention</th>
+            <th>Chirurgien</th>
+            <th>Début</th>
+            <th>Durée</th>
+            <th>Statut</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (op of pageOperations(); track op.bloc) {
+          <tr>
+            <td><strong>{{ op.bloc }}</strong></td>
+            <td>{{ op.patient }}</td>
+            <td>{{ op.intervention }}</td>
+            <td style="font-size:12px;color:var(--muted);">{{ op.chirurgien }}</td>
+            <td>{{ op.heureDebut }}</td>
+            <td>{{ op.duree }}</td>
+            <td><span class="badge-mc" [class]="badgeClass(op.status)">{{ op.status }}</span></td>
+            <td>
+              <button class="btn-primary-mc" style="padding:5px 10px;font-size:11px;" (click)="openEdit(op)"><i
+                  class="bi bi-pencil-fill"></i></button>
+              <button class="btn-danger-mc" style="padding:5px 10px;font-size:11px;" (click)="openDelete(op)"><i
+                  class="bi bi-trash3-fill"></i>
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+         <!-- Compteur bas de page -->
+        <div class="mc-card-header">
+          
+          <div style="display:flex;gap:5px;align-items:center;">
+            <span style="font-size:11px;color:var(--muted);">
+              {{ currentPage() }} / {{ totalPage() }}
+            </span>
+            <button class="btn-outline-mc" style="padding:4px 8px;font-size:11px;" [disabled]="currentPage() === 1"
+              (click)="prevPage()">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="btn-outline-mc" style="padding:4px 8px;font-size:11px;"
+              [disabled]="currentPage() === totalPage()" (click)="nextPage()">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </table>
+    </div>
+  </div>
+  @if(showModalAdd()){
+  <div class="modal-overlay" (click)="showModalAdd.set(false)">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:3px;">👨‍⚕️ Planifier
+        une opération</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Enregistrement d'un nouveau médecin</p>
+      <div class="row g-3">
+        <div class="col-6">
+          <label class="form-lbl">Bloc</label>
+          <select class="form-ctrl" [(ngModel)]="form.bloc">
+            <option value="Bloc A">Bloc A</option>
+            <option value="Bloc B">Bloc B</option>
+            <option value="Bloc C">Bloc C</option>
+            <option value="Bloc D">Bloc D</option>
+            <option value="Bloc E">Bloc E</option>
+            <option value="Bloc F">Bloc F</option>
+
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Status</label>
+          <select class="form-ctrl" [(ngModel)]="form.status">
+            <option value="Terminée">Terminée</option>
+            <option value="En cours">En cours</option>
+            <option value="Planifiée">Planifiée</option>
+
+
+
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Patient</label>
+          <input class="form-ctrl" placeholder="Prénom..." [(ngModel)]="form.patient">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Chirurgien </label>
+          <input class="form-ctrl" placeholder="Chirurgien..." [(ngModel)]="form.chirurgien">
+        </div>
+
+
+        <div class="col-6">
+          <label class="form-lbl">Heure</label>
+          <input class="form-ctrl" type="datetime-local" [(ngModel)]="form.heureDebut">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Durée</label>
+          <input class="form-ctrl" type="text" [(ngModel)]="form.duree">
+        </div>
+
+        <div class="col-12">
+          <label class="form-lbl">Intervention</label>
+          <input class="form-ctrl" [(ngModel)]="form.intervention" placeholder="Exemple: Appendicite">
+        </div>
+        <div class="col-12 d-flex justify-content-end gap-2">
+          <button class="btn-outline-mc" (click)="showModalAdd.set(false)" [disabled]="isSaving()">Annuler</button>
+          <button class="btn-primary-mc" (click)="AjouterOperation()" [disabled]="isSaving()"><i
+              class="bi bi-check-lg"></i> Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+  @if(showModalEdit()){
+  <div class="modal-overlay" (click)="showModalAdd.set(false)">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:3px;">👨‍⚕️ Modifier une
+        opération</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Enregistrement d'un nouveau médecin</p>
+      <div class="row g-3">
+        <div class="col-6">
+          <label class="form-lbl">Bloc</label>
+          <select class="form-ctrl" [(ngModel)]="formEdit.bloc">
+            <option value="Bloc A">Bloc A</option>
+            <option value="Bloc B">Bloc B</option>
+            <option value="Bloc C">Bloc C</option>
+            <option value="Bloc D">Bloc D</option>
+            <option value="Bloc E">Bloc E</option>
+            <option value="Bloc F">Bloc F</option>
+
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Status</label>
+          <select class="form-ctrl" [(ngModel)]="formEdit.status">
+            <option value="Terminée">Terminée</option>
+            <option value="En cours">En cours</option>
+            <option value="Planifiée">Planifiée</option>
+
+
+
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Patient</label>
+          <input class="form-ctrl" [(ngModel)]="formEdit.patient">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Chirurgien </label>
+          <input class="form-ctrl" [(ngModel)]="formEdit.chirurgien">
+        </div>
+
+
+        <div class="col-6">
+          <label class="form-lbl">Heure</label>
+          <input class="form-ctrl" type="datetime-local" [(ngModel)]="formEdit.heureDebut">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Durée</label>
+          <input class="form-ctrl" type="text" [(ngModel)]="formEdit.duree">
+        </div>
+
+        <div class="col-12">
+          <label class="form-lbl">Intervention</label>
+          <input class="form-ctrl" [(ngModel)]="formEdit.intervention">
+        </div>
+        <div class="col-12 d-flex justify-content-end gap-2">
+          <button class="btn-danger-mc" (click)="showModalEdit.set(false)" [disabled]="isSaving()">Annuler</button>
+          <button class="btn-outline-mc" (click)="ModifierOperation()" [disabled]="isSaving()">
+            @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            <i class="bi bi-pencil"></i> Modifier
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+  @if (showModalDelete()) {
+  <div class="modal-overlay" (click)="showModalDelete.set(false)">
+    <div class="modal-box" style="max-width:420px;text-align:center;" (click)="$event.stopPropagation()">
+      <div style="font-size:48px;margin-bottom:12px;">🗑️</div>
+      <h3 class="syne" style="font-size:18px;font-weight:800;color:#e53e3e;margin-bottom:8px;">
+        Supprimer cette Opération ?
+      </h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:6px;">
+        Vous êtes sur le point de supprimer l'operation du <strong>{{ OpToDelete()?.bloc }}</strong> du Patient
+        <strong>{{ OpToDelete()?.patient }} </strong>
+      </p>
+      <p style="font-size:12px;color:#e53e3e;margin-bottom:24px;">Cette action est irréversible.</p>
+      <div class="d-flex justify-content-center gap-3">
+        <button class="btn-outline-mc" (click)="showModalDelete.set(false)">Annuler</button>
+        <button class="btn-danger-mc" (click)="supprimerOperation()" [disabled]="isSaving()">
+          @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          <i class="bi bi-trash3"></i> Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+</div>

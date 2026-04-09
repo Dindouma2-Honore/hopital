@@ -1,0 +1,511 @@
+<!-- src/app/features/ordonnance/ordonnance.component.html -->
+<div class="page-enter">
+
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <h2 class="page-title syne">Ordonnances & Prescriptions</h2>
+      <p class="page-sub">Gestion des ordonnances médicales — {{ stats().active }} actives</p>
+    </div>
+    <button class="btn-primary-mc" (click)="ouvrirModalAdd()">
+      <i class="bi bi-file-earmark-plus-fill"></i> Nouvelle Ordonnance
+    </button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(0,194,168,.1);color:var(--accent);">
+          <i class="bi bi-file-earmark-medical-fill"></i>
+        </div>
+        <div class="kpi-value">{{ stats().total }}</div>
+        <div class="kpi-label">Total ordonnances</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(46,213,115,.1);color:var(--success);">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <div class="kpi-value" style="color:var(--success);">{{ stats().active }}</div>
+        <div class="kpi-label">Actives</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(99,91,255,.1);color:var(--accent2);">
+          <i class="bi bi-bag-check-fill"></i>
+        </div>
+        <div class="kpi-value" style="color:var(--accent2);">{{ stats().delivree }}</div>
+        <div class="kpi-label">Délivrées</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(255,71,87,.1);color:var(--danger);">
+          <i class="bi bi-clock-history"></i>
+        </div>
+        <div class="kpi-value" style="color:var(--danger);">{{ stats().expiree }}</div>
+        <div class="kpi-label">Expirées</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="mc-card mb-3">
+    <div class="mc-card-body" style="padding:12px 16px;">
+      <div class="row g-2 align-items-center">
+        <div class="col-md-4">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+                   placeholder="Patient, N° ordonnance..." />
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select class="form-ctrl" [ngModel]="filterStatus()" (ngModelChange)="filterStatus.set($event)">
+            <option value="">Tous les statuts</option>
+            <option>Active</option><option>Délivrée</option>
+            <option>Expirée</option><option>Annulée</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-ctrl" [ngModel]="filterDoctor()" (ngModelChange)="filterDoctor.set($event)">
+            <option value="">Tous les médecins</option>
+            @for (d of docteurs(); track d.id) {
+              <option [value]="'Dr. ' + d.nom + ' ' + d.prenom">Dr. {{ d.nom }} {{ d.prenom }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn-primary-mc w-100" style="justify-content:center;">
+            <i class="bi bi-funnel-fill"></i> Filtrer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste ordonnances -->
+  <div class="row g-3">
+    @for (o of pageOrdonnance(); track o.numero) {
+      <div class="col-lg-6">
+        <div class="ordo-card">
+          <div class="ordo-header" [style.border-left-color]="o.color">
+            <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+              <div class="mc-avatar" style="width:38px;height:38px;border-radius:10px;font-size:13px;flex-shrink:0;"
+                   [style.background]="o.color">
+                {{ initials(o.patient) }}
+              </div>
+              <div style="min-width:0;">
+                <div style="font-weight:700;font-size:13.5px;color:var(--primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                  {{ o.patient }}
+                </div>
+              </div>
+            </div>
+            <div style="text-align:right;flex-shrink:0;">
+              <div style="font-weight:700;font-size:12px;color:var(--primary);">{{ o.id }}</div>
+              <span class="badge-mc" [class]="statusBadge(o.status)">{{ o.status }}</span>
+            </div>
+          </div>
+
+          <div class="ordo-meta">
+            <div class="meta-item">
+              <i class="bi bi-person-badge-fill" style="color:var(--accent2);"></i>
+              <span>{{ o.prescripteur }}</span>
+            </div>
+            <div class="meta-item">
+              <i class="bi bi-calendar3" style="color:var(--accent);"></i>
+              <span>{{ o.date }}</span>
+            </div>
+            <div class="meta-item">
+              <i class="bi bi-calendar-x" style="color:var(--warning);"></i>
+              <span>Valide jusqu'au {{ o.validite }}</span>
+            </div>
+          </div>
+
+          <div class="ordo-meds">
+            @for (med of o.medicament; track med.produit) {
+              <div class="med-line">
+                <div class="med-line-left">
+                  <div class="med-bullet" [style.background]="o.color"></div>
+                  <div>
+                    <div class="med-name">{{ med.produit }}</div>
+                    <div class="med-detail">{{ med.posologie }} — {{ med.frequence }}</div>
+                    <div class="med-detail">Durée : {{ med.duree }} | Qté : {{ med.quantite }}</div>
+                    @if (med.warning) {
+                      <div class="med-warning">
+                        <i class="bi bi-exclamation-triangle-fill"></i> {{ med.warning }}
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          @if (o.note) {
+            <div class="ordo-notes">
+              <i class="bi bi-journal-text me-1" style="color:var(--muted);"></i>{{ o.note }}
+            </div>
+          }
+
+          <div class="ordo-actions">
+            <button class="btn-outline-mc" style="padding:5px 10px;font-size:11px;" (click)="openPrint(o)">
+              <i class="bi bi-printer-fill"></i> Imprimer
+            </button>
+            <button class="btn-outline-mc" style="padding:5px 10px;font-size:11px;" (click)="ouvrirModalEdit(o)">
+              <i class="bi bi-pencil-fill"></i> Modifier
+            </button>
+            <button class="btn-outline-mc" style="padding:5px 10px;font-size:11px;color:var(--danger);border-color:var(--danger);"
+                    (click)="ouvrirModalDelete(o)">
+              <i class="bi bi-trash3-fill"></i> Supprimer
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+     <!-- Compteur bas de page -->
+        <div class="mc-card-header">
+          
+          <div style="display:flex;gap:5px;align-items:center;">
+            <span style="font-size:11px;color:var(--muted);">
+              {{ currentPage() }} / {{ totalPage() }}
+            </span>
+            <button class="btn-outline-mc" style="padding:4px 8px;font-size:11px;" [disabled]="currentPage() === 1"
+              (click)="prevPage()">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="btn-outline-mc" style="padding:4px 8px;font-size:11px;"
+              [disabled]="currentPage() === totalPage()" (click)="nextPage()">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       MODAL — NOUVELLE ORDONNANCE
+       ═══════════════════════════════════════════════════════ -->
+  @if (showModalNew()) {
+    <div class="modal-overlay" (click)="showModalNew.set(false)">
+      <div class="modal-box modal-wide" (click)="$event.stopPropagation()">
+        <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:3px;">
+          📋 Nouvelle Ordonnance
+        </h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Rédiger une ordonnance médicale</p>
+
+        @if (saveError()) {
+          <div class="alert alert-danger py-2 mb-3" style="font-size:13px;">{{ saveError() }}</div>
+        }
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-lbl">Patient</label>
+            <select class="form-ctrl" [(ngModel)]="formAdd.patient">
+              <option value="">-- Choisir un patient --</option>
+              @for (p of patients(); track p.id) {
+                <option [value]="p.nom + ' ' + p.prenom">{{ p.nom }} {{ p.prenom }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-lbl">Médecin prescripteur</label>
+            <select class="form-ctrl" [(ngModel)]="formAdd.prescripteur">
+              <option value="">-- Choisir un médecin --</option>
+              @for (d of docteurs(); track d.id) {
+                <option [value]="'Dr. ' + d.nom + ' ' + d.prenom">Dr. {{ d.nom }} {{ d.prenom }} — {{ d.specialite }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Date</label>
+            <input class="form-ctrl" type="date" [(ngModel)]="formAdd.date">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Valide jusqu'au</label>
+            <input class="form-ctrl" type="date" [(ngModel)]="formAdd.validite">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Statut</label>
+            <select class="form-ctrl" [(ngModel)]="formAdd.status">
+              <option>Active</option><option>Délivrée</option>
+              <option>Expirée</option><option>Annulée</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Lignes médicaments -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:12.5px;font-weight:700;color:var(--primary);">
+            <i class="bi bi-capsule-pill me-1" style="color:var(--accent)"></i> Médicaments prescrits
+          </div>
+          <button class="btn-outline-mc" style="padding:4px 10px;font-size:11px;" (click)="ajouterLigneMedAdd()">
+            <i class="bi bi-plus-lg"></i> Ajouter ligne
+          </button>
+        </div>
+
+        @for (med of formAdd.medicament; track $index; let i = $index) {
+          <div class="med-form-row mb-2" style="display:flex;gap:8px;align-items:flex-start;">
+            <div style="font-weight:800;font-size:15px;color:var(--muted);width:22px;padding-top:8px;text-align:center;">
+              {{ i + 1 }}
+            </div>
+            <div class="row g-2 flex-1">
+              <div class="col-md-4">
+                <input class="form-ctrl" placeholder="Médicament + dosage..." [(ngModel)]="med.produit">
+              </div>
+              <div class="col-md-3">
+                <input class="form-ctrl" placeholder="Posologie..." [(ngModel)]="med.posologie">
+              </div>
+              <div class="col-md-3">
+                <input class="form-ctrl" placeholder="Fréquence..." [(ngModel)]="med.frequence">
+              </div>
+              <div class="col-md-2">
+                <input class="form-ctrl" placeholder="Durée" [(ngModel)]="med.duree">
+              </div>
+              <div class="col-md-2">
+                <input class="form-ctrl" placeholder="Quantité" [(ngModel)]="med.quantite">
+              </div>
+              <div class="col-md-4">
+                <input class="form-ctrl" placeholder="Avertissement (optionnel)" [(ngModel)]="med.warning">
+              </div>
+              <div class="col-md-2 d-flex align-items-center">
+                <button style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:15px;"
+                        title="Supprimer cette ligne" (click)="supprimerLigneMedAdd(i)">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+
+        <div class="col-12 mb-3 mt-2">
+          <label class="form-lbl">Instructions & Notes</label>
+          <textarea class="form-ctrl" rows="2" [(ngModel)]="formAdd.note"
+                    placeholder="Instructions spéciales, mode d'emploi, mises en garde..."></textarea>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button class="btn-outline-mc" (click)="showModalNew.set(false)">Annuler</button>
+          <button class="btn-primary-mc" (click)="ajouterOrdo()" [disabled]="isSaving()">
+            @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            <i class="bi bi-check-lg"></i> Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       MODAL — MODIFIER ORDONNANCE
+       ═══════════════════════════════════════════════════════ -->
+  @if (showModalEdit()) {
+    <div class="modal-overlay" (click)="showModalEdit.set(false)">
+      <div class="modal-box modal-wide" (click)="$event.stopPropagation()">
+        <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:3px;">
+          ✏️ Modifier l'Ordonnance
+        </h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">
+          Mise à jour — {{ ordoToEdit()?.id }}
+        </p>
+
+        @if (saveError()) {
+          <div class="alert alert-danger py-2 mb-3" style="font-size:13px;">{{ saveError() }}</div>
+        }
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-lbl">Patient</label>
+            <select class="form-ctrl" [(ngModel)]="formEdit.patient">
+              <option value="">-- Choisir un patient --</option>
+              @for (p of patients(); track p.id) {
+                <option [value]="p.nom + ' ' + p.prenom">{{ p.nom }} {{ p.prenom }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-lbl">Médecin prescripteur</label>
+            <select class="form-ctrl" [(ngModel)]="formEdit.prescripteur">
+              <option value="">-- Choisir un médecin --</option>
+              @for (d of docteurs(); track d.id) {
+                <option [value]="'Dr. ' + d.nom + ' ' + d.prenom">Dr. {{ d.nom }} {{ d.prenom }} — {{ d.specialite }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Date</label>
+            <input class="form-ctrl" type="date" [(ngModel)]="formEdit.date">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Valide jusqu'au</label>
+            <input class="form-ctrl" type="date" [(ngModel)]="formEdit.validite">
+          </div>
+          <div class="col-md-4">
+            <label class="form-lbl">Statut</label>
+            <select class="form-ctrl" [(ngModel)]="formEdit.status">
+              <option>Active</option><option>Délivrée</option>
+              <option>Expirée</option><option>Annulée</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Lignes médicaments Edit -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:12.5px;font-weight:700;color:var(--primary);">
+            <i class="bi bi-capsule-pill me-1" style="color:var(--accent)"></i> Médicaments prescrits
+          </div>
+          <button class="btn-outline-mc" style="padding:4px 10px;font-size:11px;" (click)="ajouterLigneMedEdit()">
+            <i class="bi bi-plus-lg"></i> Ajouter ligne
+          </button>
+        </div>
+
+        @for (med of formEdit.medicament; track $index; let i = $index) {
+          <div class="med-form-row mb-2" style="display:flex;gap:8px;align-items:flex-start;">
+            <div style="font-weight:800;font-size:15px;color:var(--muted);width:22px;padding-top:8px;text-align:center;">
+              {{ i + 1 }}
+            </div>
+            <div class="row g-2 flex-1">
+              <div class="col-md-4">
+                <input class="form-ctrl" placeholder="Médicament + dosage..." [(ngModel)]="med.produit">
+              </div>
+              <div class="col-md-3">
+                <input class="form-ctrl" placeholder="Posologie..." [(ngModel)]="med.posologie">
+              </div>
+              <div class="col-md-3">
+                <input class="form-ctrl" placeholder="Fréquence..." [(ngModel)]="med.frequence">
+              </div>
+              <div class="col-md-2">
+                <input class="form-ctrl" placeholder="Durée" [(ngModel)]="med.duree">
+              </div>
+              <div class="col-md-2">
+                <input class="form-ctrl" placeholder="Quantité" [(ngModel)]="med.quantite">
+              </div>
+              <div class="col-md-4">
+                <input class="form-ctrl" placeholder="Avertissement (optionnel)" [(ngModel)]="med.warning">
+              </div>
+              <div class="col-md-2 d-flex align-items-center">
+                <button style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:15px;"
+                        title="Supprimer cette ligne" (click)="supprimerLigneMedEdit(i)">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+
+        <div class="col-12 mb-3 mt-2">
+          <label class="form-lbl">Instructions & Notes</label>
+          <textarea class="form-ctrl" rows="2" [(ngModel)]="formEdit.note"
+                    placeholder="Instructions spéciales..."></textarea>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button class="btn-outline-mc" (click)="showModalEdit.set(false)">Annuler</button>
+          <button class="btn-primary-mc" (click)="modifierOrdo()" [disabled]="isSaving()">
+            @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            <i class="bi bi-pencil-check"></i> Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       MODAL — SUPPRIMER ORDONNANCE
+       ═══════════════════════════════════════════════════════ -->
+  @if (showModalDelete()) {
+    <div class="modal-overlay" (click)="showModalDelete.set(false)">
+      <div class="modal-box" style="max-width:420px;text-align:center;" (click)="$event.stopPropagation()">
+        <div style="font-size:48px;margin-bottom:12px;">🗑️</div>
+        <h3 class="syne" style="font-size:18px;font-weight:800;color:#e53e3e;margin-bottom:8px;">
+          Supprimer cette ordonnance ?
+        </h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:6px;">
+          Ordonnance <strong>{{ ordoToDelete()?.id }}</strong> de
+          <strong>{{ ordoToDelete()?.patient }}</strong>
+          prescrite par <strong>{{ ordoToDelete()?.prescripteur }}</strong>.
+        </p>
+        <p style="font-size:12px;color:#e53e3e;margin-bottom:24px;">Cette action est irréversible.</p>
+        <div class="d-flex justify-content-center gap-3">
+          <button class="btn-outline-mc" (click)="showModalDelete.set(false)">Annuler</button>
+          <button class="btn-danger-mc" (click)="supprimerOrdo()" [disabled]="isSaving()">
+            @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            <i class="bi bi-trash3"></i> Supprimer
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       MODAL — IMPRESSION
+       ═══════════════════════════════════════════════════════ -->
+  @if (showModalPrint() && selectedOrdo()) {
+    <div class="modal-overlay" (click)="showModalPrint.set(false)">
+      <div class="modal-box modal-wide" (click)="$event.stopPropagation()">
+        <div class="print-header">
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--primary);">
+              Hôpital Général de Yaoundé
+            </div>
+            <div style="font-size:12px;color:var(--muted);">Hopital de Baibokoum, BBk — Tél: +235 222 23 40 00</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent);">ORDONNANCE</div>
+            <div style="font-size:11.5px;color:var(--muted);">{{ selectedOrdo()!.id }}</div>
+          </div>
+        </div>
+        <hr style="border-color:var(--border);margin:14px 0;">
+        <div style="margin-bottom:12px;">
+          <div style="font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.7px;">Prescripteur</div>
+          <div style="font-size:14px;font-weight:700;color:var(--primary);">{{ selectedOrdo()!.prescripteur }}</div>
+        </div>
+        <div style="background:var(--bg);border-radius:8px;padding:12px;margin-bottom:14px;border:1px solid var(--border);">
+          <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px;">PATIENT</div>
+          <div style="font-size:14px;font-weight:700;color:var(--primary);">{{ selectedOrdo()!.patient }}</div>
+          <div style="font-size:12px;color:var(--muted);">
+            Date : {{ selectedOrdo()!.date }} &nbsp;|&nbsp; Valide jusqu'au : {{ selectedOrdo()!.validite }}
+          </div>
+        </div>
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px;">Prescription</div>
+        @for (med of selectedOrdo()!.medicament; track med.produit; let i = $index) {
+          <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+            <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--border);width:24px;text-align:center;">
+              {{ i + 1 }}
+            </div>
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:13.5px;color:var(--primary);">{{ med.produit }}</div>
+              <div style="font-size:12px;color:var(--text);margin-top:2px;">{{ med.posologie }} — {{ med.frequence }}</div>
+              <div style="font-size:11.5px;color:var(--muted);">Durée : {{ med.duree }} &nbsp;|&nbsp; Quantité : {{ med.quantite }}</div>
+              @if (med.warning) {
+                <div style="font-size:11px;color:var(--danger);margin-top:3px;">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ med.warning }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+        @if (selectedOrdo()!.note) {
+          <div style="margin-top:14px;padding:10px;background:rgba(255,165,2,.08);border-radius:8px;border:1px solid rgba(255,165,2,.2);font-size:12px;color:#d68910;">
+            <i class="bi bi-info-circle-fill me-1"></i>{{ selectedOrdo()!.note }}
+          </div>
+        }
+        <div style="display:flex;justify-content:flex-end;margin-top:24px;">
+          <div style="text-align:center;border-top:1px solid var(--border);padding-top:8px;min-width:180px;">
+            <div style="font-size:11px;color:var(--muted);">Signature & cachet</div>
+            <div style="font-size:12px;font-weight:600;color:var(--primary);margin-top:16px;">{{ selectedOrdo()!.prescripteur }}</div>
+          </div>
+        </div>
+        <div class="d-flex justify-content-end gap-2 mt-4">
+          <button class="btn-outline-mc" (click)="showModalPrint.set(false)"><i class="bi bi-x-lg"></i> Fermer</button>
+          <button class="btn-primary-mc" onclick="window.print()"><i class="bi bi-printer-fill"></i> Imprimer</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

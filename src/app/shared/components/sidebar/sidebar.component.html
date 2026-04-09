@@ -1,0 +1,54 @@
+<!-- src/app/shared/components/sidebar/sidebar.component.html -->
+<aside class="sidebar" [class.open]="isOpen">
+
+  <!-- Brand -->
+  <div class="sidebar-brand">
+    <div class="brand-logo">
+      <div class="brand-icon">
+        <i class="bi bi-heart-pulse-fill"></i>
+      </div>
+      <div>
+        <div class="brand-name">MediCore Pro</div>
+        <div class="brand-sub">Hospital System</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    @for (section of navSections; track section.label) {
+      <div class="nav-section">
+        <div class="nav-section-label">{{ section.label }}</div>
+
+        @for (item of section.items; track item.route) {
+          <a class="nav-item"
+             [routerLink]="item.route"
+             routerLinkActive="active"
+             (click)="close.emit()">
+            <i class="bi {{ item.icon }}"></i>
+            <span>{{ item.label }}</span>
+            @if (item.badge) {
+              <span class="nav-badge"
+                    [style.background]="item.badgeColor || 'var(--danger)'">
+                {{ item.badge }}
+              </span>
+            }
+          </a>
+        }
+      </div>
+    }
+  </nav>
+
+  <!-- Footer / User -->
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar">DM</div>
+      <div class="user-info">
+        <div class="user-name">Dr. Martin</div>
+        <div class="user-role">Directeur Médical</div>
+      </div>
+      <i class="bi bi-three-dots user-more"></i>
+    </div>
+  </div>
+
+</aside>

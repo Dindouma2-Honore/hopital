@@ -1,0 +1,109 @@
+<div class="page-enter">
+  <h2 class="page-title syne mb-1">Paramètres Système</h2>
+  <p class="page-sub">Configuration générale de l'établissement</p>
+
+  <div class="row g-3">
+    <div class="col-lg-3">
+      <div class="mc-card">
+        <div class="mc-card-body" style="padding:10px;">
+          <a class="settings-nav-item active"><i class="bi bi-sliders" style="color:var(--accent)"></i>Général</a>
+          <a class="settings-nav-item"><i class="bi bi-shield-lock-fill" style="color:var(--accent2)"></i>Sécurité</a>
+          <a class="settings-nav-item"><i class="bi bi-bell-fill" style="color:var(--warning)"></i>Notifications</a>
+          <a class="settings-nav-item"><i class="bi bi-plug-fill" style="color:var(--success)"></i>Intégrations</a>
+          <a class="settings-nav-item"><i class="bi bi-cloud-arrow-up-fill" style="color:var(--muted)"></i>Sauvegardes</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-9">
+      <div class="mc-card mb-3">
+        <div class="mc-card-header"><span class="mc-card-title">Informations de l'Établissement</span></div>
+        <div class="mc-card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-lbl">Nom de l'hôpital</label>
+              <input class="form-ctrl" [(ngModel)]="hospital.name">
+            </div>
+            <div class="col-md-6">
+              <label class="form-lbl">Code établissement</label>
+              <input class="form-ctrl" [(ngModel)]="hospital.code">
+            </div>
+            <div class="col-md-6">
+              <label class="form-lbl">Adresse</label>
+              <input class="form-ctrl" [(ngModel)]="hospital.address">
+            </div>
+            <div class="col-md-6">
+              <label class="form-lbl">Téléphone principal</label>
+              <input class="form-ctrl" [(ngModel)]="hospital.phone">
+            </div>
+            <div class="col-md-6">
+              <label class="form-lbl">Email</label>
+              <input class="form-ctrl" [(ngModel)]="hospital.email">
+            </div>
+            <div class="col-md-6">
+              <label class="form-lbl">Capacité totale</label>
+              <input class="form-ctrl" [(ngModel)]="hospital.capacity">
+            </div>
+            <div class="col-12 d-flex justify-content-end gap-2 mt-1">
+              <button class="btn-outline-mc">Annuler</button>
+              <button class="btn-primary-mc"><i class="bi bi-check-lg"></i> Sauvegarder</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc-card mb-3">
+        <div class="mc-card-header"><span class="mc-card-title">Sécurité & Accès</span></div>
+        <div class="mc-card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-lbl">Mot de passe actuel</label>
+              <input class="form-ctrl" type="password" placeholder="••••••••">
+            </div>
+            <div class="col-md-6">
+              <label class="form-lbl">Nouveau mot de passe</label>
+              <input class="form-ctrl" type="password" placeholder="••••••••">
+            </div>
+            <div class="col-12 d-flex justify-content-between align-items-center">
+              <div>
+                <div style="font-size:13px;font-weight:600;">Authentification à deux facteurs</div>
+                <div style="font-size:11.5px;color:var(--muted);">Renforcer la sécurité de votre compte</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="badge-mc badge-success-mc">Activé</span>
+                <button class="btn-outline-mc" style="padding:5px 10px;font-size:11px;">Configurer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc-card">
+        <div class="mc-card-header"><span class="mc-card-title">Agent IA MediAI</span></div>
+        <div class="mc-card-body">
+          <div class="row g-3">
+            <div class="col-md-12">
+              <label class="form-lbl">Clé API Anthropic (Claude)</label>
+              <input class="form-ctrl" type="password" placeholder="sk-ant-...">
+            </div>
+            <div class="col-md-6">
+              <label class="form-lbl">Modèle IA</label>
+              <select class="form-ctrl">
+                <option>claude-sonnet-4-20250514</option>
+                <option>claude-opus-4-20250514</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-lbl">Langue de réponse</label>
+              <select class="form-ctrl"><option>Français</option><option>English</option></select>
+            </div>
+            <div class="col-12 d-flex justify-content-end gap-2">
+              <button class="btn-outline-mc">Tester la connexion</button>
+              <button class="btn-primary-mc"><i class="bi bi-check-lg"></i> Sauvegarder</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

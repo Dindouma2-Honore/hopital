@@ -1,0 +1,67 @@
+<!-- src/app/shared/components/ia-agent/ia-agent.component.html -->
+<div class="ia-panel">
+
+  <!-- Chat Window -->
+  @if (ia.isOpen()) {
+    <div class="ia-chat">
+
+      <!-- Header -->
+      <div class="ia-header">
+        <div class="ia-avatar">🤖</div>
+        <div>
+          <div class="ia-title">MediAI Assistant</div>
+          <div class="ia-subtitle">Powered by Claude</div>
+        </div>
+        <div class="ia-status-dot"></div>
+        <button class="ia-close" (click)="ia.close()">×</button>
+      </div>
+
+      <!-- Messages -->
+      <div class="ia-messages" #msgContainer>
+        @for (msg of ia.messages(); track $index) {
+          <div class="ia-msg" [class.bot]="msg.role==='bot'" [class.user]="msg.role==='user'">
+            <div class="ia-bubble" [innerHTML]="msg.text"></div>
+            <div class="ia-time">{{ msg.time }}</div>
+          </div>
+        }
+
+        @if (ia.isTyping()) {
+          <div class="ia-msg bot">
+            <div class="ia-bubble">
+              <div class="typing-dots">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Suggestions -->
+      <div class="ia-suggestions">
+        @for (s of suggestions; track s) {
+          <button class="ia-suggestion" (click)="askSuggestion(s)">{{ s }}</button>
+        }
+      </div>
+
+      <!-- Input -->
+      <div class="ia-input-area">
+        <input
+          [(ngModel)]="inputText"
+          placeholder="Posez votre question..."
+          (keydown)="onKeydown($event)"
+          class="ia-input" />
+        <button class="ia-send" (click)="send()">
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </div>
+
+    </div>
+  }
+
+  <!-- Toggle Button -->
+  <button class="ia-toggle-btn" (click)="ia.toggle()" title="MediAI Assistant">
+    <span class="pulse-ring"></span>
+    🤖
+  </button>
+
+</div>

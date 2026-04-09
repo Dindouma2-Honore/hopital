@@ -1,0 +1,395 @@
+<div class="page-enter">
+
+  <!-- ── En-tête ─────────────────────────────────────────── -->
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <h2 class="page-title syne">Chambres & Gestion des Lits</h2>
+      <p class="page-sub">
+        {{ totalRooms() }} lits —
+        {{ totalOcc() }} occupés —
+        {{ totalFree() }} disponibles
+      </p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <!-- Légende -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);align-items:center;margin-right:8px;">
+        <span><span class="legend-dot" style="background:rgba(255,71,87,.2);border:2px solid rgba(255,71,87,.4);"></span>Occupé</span>
+        <span><span class="legend-dot" style="background:rgba(46,213,115,.2);border:2px solid rgba(46,213,115,.4);"></span>Libre</span>
+        <span><span class="legend-dot" style="background:rgba(255,165,2,.2);border:2px solid rgba(255,165,2,.4);"></span>Maintenance</span>
+        <span><span class="legend-dot" style="background:rgba(99,91,255,.2);border:2px solid rgba(99,91,255,.4);"></span>USI</span>
+      </div>
+      <button class="btn-outline-mc" (click)="ouvrirModalAddFloor()">
+        <i class="bi bi-layers-half"></i> Nouvel étage
+      </button>
+      <button class="btn-primary-mc" (click)="ouvrirModalAddRoom()">
+        <i class="bi bi-plus-lg"></i> Nouvelle chambre
+      </button>
+    </div>
+  </div>
+
+  @if (errorMsg()) {
+    <div class="alert alert-danger mb-3">{{ errorMsg() }}</div>
+  }
+
+  <div class="row g-3">
+    <div class="col-lg-9">
+
+      <!-- ── Étages dynamiques ──────────────────────────── -->
+      @if (isLoading()) {
+        <div class="mc-card mb-3" style="padding:2rem;text-align:center;color:var(--muted);">
+          <span class="spinner-border spinner-border-sm me-2"></span> Chargement...
+        </div>
+      }
+
+      @for (floor of etages(); track floor.numero) {
+        <div class="mc-card mb-3">
+          <!-- Header étage -->
+          <div class="mc-card-header">
+            <div style="display:flex;align-items:center;gap:10px;flex:1;">
+              <span class="mc-card-title">
+                Étage {{ floor.id }} — {{ floor.nom }}
+                <span style="font-size:11px;color:var(--muted);font-weight:400;margin-left:4px;">{{ floor.service }}</span>
+              </span>
+              <span class="badge-mc" [class]="badgeFloor(floor.id)">
+                {{ roomsByFloor(floor.id).length }} lits
+              </span>
+            </div>
+            <!-- Actions étage -->
+            <div style="display:flex;gap:6px;">
+              <button class="btn-primary-mc" title="Modifier l'étage" (click)="ouvrirModalEditFloor(floor)">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn-danger-mc" title="Supprimer l'étage" 
+                      (click)="ouvrirModalDeleteFloor(floor)">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Grille des chambres -->
+          <div class="mc-card-body">
+            @if (roomsByFloor(floor.id).length === 0) {
+              <p style="font-size:12px;color:var(--muted);text-align:center;padding:1rem 0;">
+                Aucune chambre — <button class="btn-link-mc" (click)="ouvrirModalAddRoom()">Ajouter une chambre</button>
+              </p>
+            }
+            <div class="room-grid">
+              @for (r of roomsByFloor(floor.id); track r.numero) {
+                <div class="room-cell" [class]="r.status" [title]="'Chambre ' + r.id">
+                  <div style="font-size:14px;">{{ icon(r.status) }}</div>
+                  <div style="font-size:11px;font-weight:600;">{{ r.id }}</div>
+                  <!-- Actions chambre au survol -->
+                  <div class="room-actions">
+                    <button class="room-action-btn" title="Modifier" (click)="ouvrirModalEditRoom(r)">
+                      <i class="bi bi-pencil-fill" style="font-size:9px;"></i>
+                    </button>
+                    <button class="room-action-btn danger" title="Supprimer" (click)="ouvrirModalDeleteRoom(r)">
+                      <i class="bi bi-trash3-fill" style="font-size:9px;"></i>
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (!isLoading() && etages().length === 0) {
+        <div class="mc-card" style="padding:2.5rem;text-align:center;">
+          <i class="bi bi-layers" style="font-size:32px;color:var(--muted);display:block;margin-bottom:12px;"></i>
+          <p style="color:var(--muted);font-size:14px;margin-bottom:12px;">Aucun étage enregistré</p>
+          <button class="btn-primary-mc" (click)="ouvrirModalAddFloor()">
+            <i class="bi bi-plus-lg"></i> Créer le premier étage
+          </button>
+        </div>
+      }
+
+    </div>
+
+    <!-- ── Sidebar ──────────────────────────────────────── -->
+    <div class="col-lg-3">
+      <!-- Capacité par étage -->
+      <div class="mc-card mb-3">
+        <div class="mc-card-header"><span class="mc-card-title">Capacité par étage</span></div>
+        <div class="mc-card-body">
+          @for (f of etages(); track f.numero) {
+            <div style="margin-bottom:14px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                <span style="font-size:12px;font-weight:600;">Étage {{ f.id }} — {{ f.nom }}</span>
+                <span style="font-size:11px;color:var(--muted);">
+                  {{ floorStats(f.id).occ }}/{{ floorStats(f.id).total }}
+                </span>
+              </div>
+              <div class="mc-progress">
+                <div class="mc-progress-bar"
+                     [style.width.%]="floorStats(f.id).pct"
+                     [style.background]="floorStats(f.id).pct > 89 ? 'var(--danger)' : 'var(--accent)'">
+                </div>
+              </div>
+              <div style="font-size:10px;color:var(--muted);margin-top:3px;text-align:right;">
+                {{ floorStats(f.id).pct }}%
+              </div>
+            </div>
+          }
+          @if (etages().length === 0) {
+            <p style="font-size:12px;color:var(--muted);text-align:center;">Aucun étage</p>
+          }
+        </div>
+      </div>
+
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       MODAL — AJOUTER UNE CHAMBRE
+       ═══════════════════════════════════════════════════════ -->
+  @if (showModalAddRoom()) {
+    <div class="modal-overlay" (click)="showModalAddRoom.set(false)">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+        <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:3px;">
+          🛏️ Nouvelle Chambre
+        </h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Ajouter une chambre à un étage</p>
+
+        @if (saveError()) {
+          <div class="alert alert-danger py-2 mb-3" style="font-size:13px;">{{ saveError() }}</div>
+        }
+
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-lbl">Numéro de chambre</label>
+            <input class="form-ctrl" [(ngModel)]="formAddRoom.id" placeholder="ex: 101, A12...">
+          </div>
+          <div class="col-6">
+            <label class="form-lbl">Étage</label>
+            <select class="form-ctrl" [(ngModel)]="formAddRoom.etage">
+              @for (f of etages(); track f.numero) {
+                <option [value]="f.id">Étage {{ f.id }} — {{ f.nom }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-lbl">Statut</label>
+            <select class="form-ctrl" [(ngModel)]="formAddRoom.status">
+              <option value="free">Libre</option>
+              <option value="occupied">Occupé</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="icu">USI</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-lbl">Patient (si occupé)</label>
+            <input class="form-ctrl" [(ngModel)]="formAddRoom.patient" placeholder="Nom du patient...">
+          </div>
+          <div class="col-12 d-flex justify-content-end gap-2">
+            <button class="btn-outline-mc" (click)="showModalAddRoom.set(false)">Annuler</button>
+            <button class="btn-primary-mc" (click)="ajouterRoom()" [disabled]="isSaving()">
+              @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+              <i class="bi bi-check-lg"></i> Enregistrer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       MODAL — MODIFIER UNE CHAMBRE
+       ═══════════════════════════════════════════════════════ -->
+  @if (showModalEditRoom()) {
+    <div class="modal-overlay" (click)="showModalEditRoom.set(false)">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+        <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:3px;">
+          ✏️ Modifier la Chambre {{ roomToEdit()?.id }}
+        </h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Mise à jour des informations</p>
+
+        @if (saveError()) {
+          <div class="alert alert-danger py-2 mb-3" style="font-size:13px;">{{ saveError() }}</div>
+        }
+
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-lbl">Numéro de chambre</label>
+            <input class="form-ctrl" [(ngModel)]="formEditRoom.id" placeholder="ex: 101">
+          </div>
+          <div class="col-6">
+            <label class="form-lbl">Étage</label>
+            <select class="form-ctrl" [(ngModel)]="formEditRoom.etage">
+              @for (f of etages(); track f.numero) {
+                <option [value]="f.id">Étage {{ f.id }} — {{ f.nom }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-lbl">Statut</label>
+            <select class="form-ctrl" [(ngModel)]="formEditRoom.status">
+              <option value="free">Libre</option>
+              <option value="occupied">Occupé</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="icu">USI</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-lbl">Patient</label>
+            <input class="form-ctrl" [(ngModel)]="formEditRoom.patient" placeholder="Nom du patient...">
+          </div>
+          <div class="col-12 d-flex justify-content-end gap-2">
+            <button class="btn-outline-mc" (click)="showModalEditRoom.set(false)">Annuler</button>
+            <button class="btn-primary-mc" (click)="modifierRoom()" [disabled]="isSaving()">
+              @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+              <i class="bi bi-pencil-check"></i> Enregistrer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       MODAL — SUPPRIMER UNE CHAMBRE
+       ═══════════════════════════════════════════════════════ -->
+  @if (showModalDeleteRoom()) {
+    <div class="modal-overlay" (click)="showModalDeleteRoom.set(false)">
+      <div class="modal-box" style="max-width:420px;text-align:center;" (click)="$event.stopPropagation()">
+        <div style="font-size:40px;margin-bottom:12px;">🗑️</div>
+        <h3 class="syne" style="font-size:18px;font-weight:800;color:#e53e3e;margin-bottom:8px;">
+          Supprimer la chambre ?
+        </h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:6px;">
+          Chambre <strong>{{ roomToDelete()?.id }}</strong> —
+          Étage {{ roomToDelete()?.etage }}
+        </p>
+        @if (roomToDelete()?.patient) {
+          <p style="font-size:12px;color:#e53e3e;margin-bottom:6px;">
+            ⚠️ Patient <strong>{{ roomToDelete()?.patient }}</strong> actuellement assigné.
+          </p>
+        }
+        <p style="font-size:12px;color:#e53e3e;margin-bottom:24px;">Cette action est irréversible.</p>
+        <div class="d-flex justify-content-center gap-3">
+          <button class="btn-outline-mc" (click)="showModalDeleteRoom.set(false)">Annuler</button>
+          <button class="btn-danger-mc" (click)="supprimerRoom()" [disabled]="isSaving()">
+            @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            <i class="bi bi-trash3"></i> Supprimer
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       MODAL — AJOUTER UN ÉTAGE
+       ═══════════════════════════════════════════════════════ -->
+  @if (showModalAddFloor()) {
+    <div class="modal-overlay" (click)="showModalAddFloor.set(false)">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+        <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:3px;">
+          🏢 Nouvel Étage
+        </h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Ajouter un niveau à l'hôpital</p>
+
+        @if (saveError()) {
+          <div class="alert alert-danger py-2 mb-3" style="font-size:13px;">{{ saveError() }}</div>
+        }
+
+        <div class="row g-3">
+          <div class="col-4">
+            <label class="form-lbl">Numéro d'étage</label>
+            <input class="form-ctrl" type="number" [(ngModel)]="formAddFloor.id" placeholder="ex: 4">
+          </div>
+          <div class="col-8">
+            <label class="form-lbl">Nom de l'étage</label>
+            <input class="form-ctrl" [(ngModel)]="formAddFloor.nom" placeholder="ex: Pédiatrie, Cardiologie...">
+          </div>
+          <div class="col-12">
+            <label class="form-lbl">Service / Spécialité</label>
+            <input class="form-ctrl" [(ngModel)]="formAddFloor.service" placeholder="ex: Médecine Générale, USI...">
+          </div>
+          <div class="col-12 d-flex justify-content-end gap-2">
+            <button class="btn-outline-mc" (click)="showModalAddFloor.set(false)">Annuler</button>
+            <button class="btn-primary-mc" (click)="ajouterFloor()" [disabled]="isSaving()">
+              @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+              <i class="bi bi-check-lg"></i> Créer l'étage
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       MODAL — MODIFIER UN ÉTAGE
+       ═══════════════════════════════════════════════════════ -->
+  @if (showModalEditFloor()) {
+    <div class="modal-overlay" (click)="showModalEditFloor.set(false)">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+        <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:3px;">
+          ✏️ Modifier l'Étage {{ floorToEdit()?.id }}
+        </h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Mise à jour des informations</p>
+
+        @if (saveError()) {
+          <div class="alert alert-danger py-2 mb-3" style="font-size:13px;">{{ saveError() }}</div>
+        }
+
+        <div class="row g-3">
+          <div class="col-4">
+            <label class="form-lbl">Numéro d'étage</label>
+            <input class="form-ctrl" type="number" [(ngModel)]="formEditFloor.id">
+          </div>
+          <div class="col-8">
+            <label class="form-lbl">Nom de l'étage</label>
+            <input class="form-ctrl" [(ngModel)]="formEditFloor.nom" placeholder="ex: Pédiatrie...">
+          </div>
+          <div class="col-12">
+            <label class="form-lbl">Service / Spécialité</label>
+            <input class="form-ctrl" [(ngModel)]="formEditFloor.service" placeholder="ex: Médecine Générale...">
+          </div>
+          <div class="col-12 d-flex justify-content-end gap-2">
+            <button class="btn-outline-mc" (click)="showModalEditFloor.set(false)">Annuler</button>
+            <button class="btn-primary-mc" (click)="modifierFloor()" [disabled]="isSaving()">
+              @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+              <i class="bi bi-pencil-check"></i> Enregistrer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       MODAL — SUPPRIMER UN ÉTAGE
+       ═══════════════════════════════════════════════════════ -->
+  @if (showModalDeleteFloor()) {
+    <div class="modal-overlay" (click)="showModalDeleteFloor.set(false)">
+      <div class="modal-box" style="max-width:420px;text-align:center;" (click)="$event.stopPropagation()">
+        <div style="font-size:40px;margin-bottom:12px;">🏢</div>
+        <h3 class="syne" style="font-size:18px;font-weight:800;color:#e53e3e;margin-bottom:8px;">
+          Supprimer l'étage {{ floorToDelete()?.id }} ?
+        </h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:6px;">
+          <strong>Étage {{ floorToDelete()?.id }} — {{ floorToDelete()?.nom }}</strong>
+        </p>
+        <p style="font-size:12px;color:#e53e3e;margin-bottom:6px;">
+          ⚠️ Toutes les chambres de cet étage seront également supprimées.
+        </p>
+        <p style="font-size:12px;color:#e53e3e;margin-bottom:24px;">Cette action est irréversible.</p>
+        <div class="d-flex justify-content-center gap-3">
+          <button class="btn-outline-mc" (click)="showModalDeleteFloor.set(false)">Annuler</button>
+          <button class="btn-danger-mc" (click)="supprimerFloor()" [disabled]="isSaving()">
+            @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            <i class="bi bi-trash3"></i> Supprimer
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

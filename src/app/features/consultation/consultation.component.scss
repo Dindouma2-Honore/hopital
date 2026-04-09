@@ -1,0 +1,96 @@
+/* src/app/features/consultation/consultation.component.scss */
+
+.page-title { font-size: 21px; font-weight: 800; color: var(--primary); margin-bottom: 2px; }
+.page-sub   { font-size: 12.5px; color: var(--muted); margin: 0; }
+
+/* KPI cards */
+.kpi-card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 18px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  transition: .2s;
+  &:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+}
+.kpi-icon {
+  width: 44px; height: 44px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; margin-bottom: 10px;
+}
+.kpi-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px; font-weight: 800; color: var(--primary); line-height: 1; margin-bottom: 3px;
+}
+.kpi-label { font-size: 12px; color: var(--muted); }
+
+/* Search box */
+.search-box {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 7px 12px;
+  i { color: var(--muted); font-size: 13px; }
+  input {
+    border: none; background: transparent; outline: none;
+    font-size: 12.5px; color: var(--text); width: 100%;
+    font-family: 'Inter', sans-serif;
+    &::placeholder { color: var(--muted); }
+  }
+}
+
+/* Patient cell */
+.patient-cell { display: flex; align-items: center; gap: 8px; }
+
+/* Motif text truncate */
+.motif-text {
+  font-size: 12px; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+/* Detail cards */
+.detail-card {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  border: 1px solid var(--border);
+}
+.detail-card-label {
+  font-size: 10.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .7px; color: var(--muted);
+}
+
+/* Detail sections */
+.detail-section {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.detail-section-title {
+  font-size: 12.5px; font-weight: 700; color: var(--primary);
+  padding: 10px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+.detail-content {
+  font-size: 13px; color: var(--text); line-height: 1.6;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 3000;
+  background: rgba(11,37,69,.45); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+  animation: fadeInUp .2s ease;
+}
+.modal-box {
+  background: #fff; border-radius: 18px; padding: 24px;
+  max-width: 560px; width: 100%; max-height: 90vh;
+  overflow-y: auto; box-shadow: var(--shadow-lg);
+}
+.modal-wide { max-width: 700px; }

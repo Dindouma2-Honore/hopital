@@ -1,0 +1,155 @@
+<div class="page-enter">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h2 class="page-title syne">Finance & Facturation</h2><p class="page-sub">Gestion financière hospitalière — Exercice 2026</p></div>
+    <button class="btn-primary-mc" (click)="showModalAdd.set(true)"><i class="bi bi-file-earmark-text-fill"></i> Nouvelle Facture</button>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="mc-card"><div class="mc-card-body" style="padding:18px;">
+        <div style="width:46px;height:46px;border-radius:12px;background:rgba(0,194,168,.1);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px;"><i class="bi bi-cash-stack"></i></div>
+        <div class="syne" style="font-size:26px;font-weight:800;color:var(--primary);">4.2M</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Recettes Mars (FCFA)</div>
+        <div style="font-size:11px;font-weight:600;color:var(--success);"><i class="bi bi-arrow-up-right"></i> +8.3%</div>
+      </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="mc-card"><div class="mc-card-body" style="padding:18px;">
+        <div style="width:46px;height:46px;border-radius:12px;background:rgba(255,71,87,.1);color:var(--danger);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px;"><i class="bi bi-arrow-up-right-circle-fill"></i></div>
+        <div class="syne" style="font-size:26px;font-weight:800;color:var(--primary);">2.8M</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Dépenses Mars (FCFA)</div>
+        <div style="font-size:11px;font-weight:600;color:var(--danger);"><i class="bi bi-arrow-up-right"></i> +2.1%</div>
+      </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="mc-card"><div class="mc-card-body" style="padding:18px;">
+        <div style="width:46px;height:46px;border-radius:12px;background:rgba(46,213,115,.1);color:var(--success);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px;"><i class="bi bi-graph-up-arrow"></i></div>
+        <div class="syne" style="font-size:26px;font-weight:800;color:var(--primary);">1.4M</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Bénéfice Net (FCFA)</div>
+        <div style="font-size:11px;font-weight:600;color:var(--success);"><i class="bi bi-arrow-up-right"></i> +14.7%</div>
+      </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="mc-card"><div class="mc-card-body" style="padding:18px;">
+        <div style="width:46px;height:46px;border-radius:12px;background:rgba(255,165,2,.1);color:var(--warning);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px;"><i class="bi bi-clock-fill"></i></div>
+        <div class="syne" style="font-size:26px;font-weight:800;color:var(--primary);">87</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Factures en attente</div>
+        <div style="font-size:11px;font-weight:600;color:var(--warning);">340K FCFA dû</div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-7">
+      <div class="mc-card">
+        <div class="mc-card-header"><span class="mc-card-title">Factures Récentes</span><button class="btn-outline-mc" style="padding:5px 10px;font-size:11px;"><i class="bi bi-download"></i> Exporter</button></div>
+        <div style="overflow-x:auto;">
+          <table class="mc-table">
+            <thead><tr><th>N° Facture</th><th>Patient</th><th>Services</th><th>Montant</th><th>Statut</th><th>Action</th></tr></thead>
+            <tbody>
+              @for (f of factures(); track f.reference) {
+                <tr>
+                  <td><strong>{{ f.reference }}</strong></td>
+                  <td>{{ f.patient }}</td>
+                  <td style="font-size:12px;color:var(--muted);">{{ f.service }}</td>
+                  <td><strong>{{ f.montant | number }} FCFA</strong></td>
+                  <td>
+                    <span class="badge-mc"
+                      [class.badge-success-mc]="f.status==='Payée'"
+                      [class.badge-warning-mc]="f.status==='En attente'"
+                      [class.badge-danger-mc]="f.status==='Impayée'">
+                      {{ f.status }}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn-outline-mc" style="padding:3px 7px;font-size:10.5px;"><i class="bi bi-file-pdf-fill"></i> PDF</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="mc-card">
+        <div class="mc-card-header"><span class="mc-card-title">Répartition des Recettes</span></div>
+        <div class="mc-card-body">
+          <div class="finance-bar">
+            <div class="fb-label">Hospitalisations</div>
+            <div class="fb-track"><div class="fb-fill" style="width:72%;background:linear-gradient(90deg,var(--accent),var(--accent-dk));"></div></div>
+            <div class="fb-amount">1.51M</div>
+          </div>
+          <div class="finance-bar">
+            <div class="fb-label">Chirurgies</div>
+            <div class="fb-track"><div class="fb-fill" style="width:58%;background:linear-gradient(90deg,var(--accent2),#7c3aed);"></div></div>
+            <div class="fb-amount">1.22M</div>
+          </div>
+          <div class="finance-bar">
+            <div class="fb-label">Consultations</div>
+            <div class="fb-track"><div class="fb-fill" style="width:40%;background:linear-gradient(90deg,var(--warning),#e67e22);"></div></div>
+            <div class="fb-amount">0.84M</div>
+          </div>
+          <div class="finance-bar">
+            <div class="fb-label">Laboratoire</div>
+            <div class="fb-track"><div class="fb-fill" style="width:25%;background:linear-gradient(90deg,var(--success),#27ae60);"></div></div>
+            <div class="fb-amount">0.52M</div>
+          </div>
+          <div class="finance-bar">
+            <div class="fb-label">Pharmacie</div>
+            <div class="fb-track"><div class="fb-fill" style="width:18%;background:linear-gradient(90deg,var(--danger),#c0392b);"></div></div>
+            <div class="fb-amount">0.11M</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  @if(showModalAdd()){
+    <div class="modal-overlay" (click)="showModalAdd.set(false)">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);margin-bottom:3px;">👨‍⚕️ Ajouter
+        une Facture</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Enregistrement d'une nouvelle facture</p>
+      <div class="row g-3">
+        <div class="col-6">
+          <label class="form-lbl">Reference</label>
+          <input class="form-ctrl" placeholder="#RF202601..." [(ngModel)]="form.reference">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Patient</label>
+          <input class="form-ctrl" placeholder="Nom complet du patient..." [(ngModel)]="form.patient">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Service</label>
+          <input class="form-ctrl" placeholder="Type d'examen..." [(ngModel)]="form.service">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Montant </label>
+          <input class="form-ctrl" placeholder="Prescripteur..." [(ngModel)]="form.montant">
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Status</label>
+          <select class="form-ctrl" [(ngModel)]="form.status">
+            <option value="Payée">Payée</option>
+            
+            <option value="En attente">En Attente</option>
+            <option value="Impayée">Impayée</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-lbl">Date</label>
+          <input class="form-ctrl" type="datetime-local" [(ngModel)]="form.date">
+        </div>
+        <div class="col-12 d-flex justify-content-end gap-2">
+          <button class="btn-outline-mc" (click)="showModalAdd.set(false)" [disabled]="isSaving()">Annuler</button>
+          <button class="btn-primary-mc" (click)="AjouterFacture()" [disabled]="isSaving()"><i class="bi bi-check-lg"></i>
+            @if(isSaving()){<i class="spinner-border spinner-border-sm me-1 "></i>}
+            Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+</div>

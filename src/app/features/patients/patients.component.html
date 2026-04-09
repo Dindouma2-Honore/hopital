@@ -1,0 +1,435 @@
+<!-- ============================================================
+     src/app/features/patients/patients.component.html
+     CRUD complet : Lire + Ajouter + Modifier + Supprimer
+============================================================ -->
+<div class="page-enter">
+
+  <!-- En-tête -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="page-title syne">Patients</h2>
+      <p class="page-sub">
+        @if (isLoading()) { Chargement en cours... }
+        @else if (errorMsg()) { Erreur de chargement }
+        @else { {{ filtered().length }} / {{ patients().length }} patients }
+      </p>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-outline-mc" (click)="refresh()" [disabled]="isLoading()">
+        <i class="bi bi-arrow-clockwise" [class.spin]="isLoading()"></i> Actualiser
+      </button>
+      <button class="btn-primary-mc" (click)="openAdd()">
+        <i class="bi bi-person-plus-fill"></i> Nouveau Patient
+      </button>
+    </div>
+  </div>
+
+  <!-- ── CHARGEMENT ── -->
+  @if (isLoading()) {
+    <div class="state-box">
+      <div class="spinner"></div>
+      <div class="state-title">Chargement des patients...</div>
+      <div class="state-sub">Connexion à l'API PHP en cours</div>
+    </div>
+  }
+
+  <!-- ── ERREUR ── -->
+  @else if (errorMsg()) {
+    <div class="state-box state-error">
+      <i class="bi bi-wifi-off" style="font-size:36px;color:var(--danger);"></i>
+      <div class="state-title">Impossible de charger les patients</div>
+      <div class="state-sub">{{ errorMsg() }}</div>
+      <button class="btn-primary-mc mt-3" (click)="refresh()">
+        <i class="bi bi-arrow-clockwise"></i> Réessayer
+      </button>
+    </div>
+  }
+
+  <!-- ── DONNÉES CHARGÉES ── -->
+  @else {
+
+    <!-- Filtres -->
+    <div class="mc-card mb-3">
+      <div class="mc-card-body" style="padding:12px 16px;">
+        <div class="row g-2 align-items-center">
+          <div class="col-md-4">
+            <div class="search-box">
+              <i class="bi bi-search"></i>
+              <input [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+                     placeholder="Nom, prénom, matricule..." />
+            </div>
+          </div>
+          <div class="col-md-3">
+            <select class="form-ctrl" [ngModel]="filterDept()" (ngModelChange)="filterDept.set($event)">
+              <option value="">Tous les services</option>
+              @for (d of departments; track d) { <option [value]="d">{{ d }}</option> }
+            </select>
+          </div>
+          <div class="col-md-3">
+            <select class="form-ctrl" [ngModel]="filterStatus()" (ngModelChange)="filterStatus.set($event)">
+              <option value="">Tous les statuts</option>
+              @for (s of statuses; track s) { <option [value]="s">{{ s }}</option> }
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button class="btn-primary-mc w-100" style="justify-content:center;">
+              <i class="bi bi-funnel-fill"></i> Filtrer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- ════════════════════════════════════════════════════════
+       Chargement du tableau
+  ════════════════════════════════════════════════════════ -->
+    <div class="mc-card">
+      @if (filtered().length === 0) {
+        <div class="state-box" style="padding:40px;">
+          <i class="bi bi-people" style="font-size:36px;color:var(--muted);"></i>
+          <div class="state-title">Aucun patient trouvé</div>
+          <div class="state-sub">Modifiez vos filtres ou ajoutez un patient.</div>
+        </div>
+      } @else {
+        <div style="overflow-x:auto;">
+          <table class="mc-table">
+            <thead>
+              <tr>
+                <th>Matricule</th>
+                <th>Patient</th>
+                <th>Âge</th>
+                <th>Service</th>
+                <th>Médecin</th>
+                <th>Chambre</th>
+                <th>Statut</th>
+                <th>Admission</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of pagedPatients(); track p.id) {
+                <tr>
+                  <td><strong style="font-size:11.5px;">{{ p.matricule }}</strong></td>
+                  <td>
+                    <div class="patient-cell">
+                      <div class="mc-avatar" style="width:32px;height:32px;font-size:11px;"
+                           [style.background]="p.color ?? '#00c2a8'">
+                        {{ matricule(p) }}
+                      </div>
+                      <div>
+                        <div style="font-weight:600;font-size:12.5px;">
+                          {{ p.nom }} {{ p.prenom }}
+                        </div>
+                        <div style="font-size:10.5px;color:var(--muted);">
+                          {{ p.sexe === 'M' ? 'Masculin' : 'Féminin' }} · {{ p.bloodGroup }}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ p.age }} ans</td>
+                  <td>{{ p.departement }}</td>
+                  <td style="font-size:12px;color:var(--muted);">{{ p.docteur || '—' }}</td>
+                  <td style="font-size:12px;">{{ p.salle || '—' }}</td>
+                  <td>
+                    <span class="badge-mc" [class]="statusBadge(p.status)">{{ p.status }}</span>
+                  </td>
+                  <td style="font-size:11.5px;color:var(--muted);">{{ p.admissionDate }}</td>
+                  <td>
+                    <div class="action-btns">
+                      <!-- Modifier -->
+                      <button class="btn-outline-mc" style="padding:3px 7px;font-size:10.5px;" (click)="openEdit(p)" title="Modifier ce patient">
+                        <i class="bi bi-pencil-fill"></i>
+                      </button>
+                      <!-- Supprimer -->
+                      <button class="btn-outline-mc" style="padding:3px 7px;font-size:10.5px;" (click)="openDelete(p)" title="Supprimer ce patient">
+                        <i class="bi bi-trash3-fill"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <!-- Compteur bas de page -->
+        <div class="mc-card-header">
+          
+          <div style="display:flex;gap:5px;align-items:center;">
+            <span style="font-size:11px;color:var(--muted);">
+              {{ currentPage() }} / {{ totalPages() }}
+            </span>
+            <button class="btn-outline-mc" style="padding:4px 8px;font-size:11px;" [disabled]="currentPage() === 1"
+              (click)="prevPage()">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="btn-outline-mc" style="padding:4px 8px;font-size:11px;"
+              [disabled]="currentPage() === totalPages()" (click)="nextPage()">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+
+  <!-- ════════════════════════════════════════════════════════
+       MODAL — AJOUTER UN PATIENT
+  ════════════════════════════════════════════════════════ -->
+  @if (showModalAdd()) {
+    <div class="modal-overlay" (click)="closeAdd()">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+
+        <div class="modal-header-custom">
+          <div class="modal-icon-wrap" style="background:rgba(0,194,168,.12);color:var(--accent);">
+            <i class="bi bi-person-plus-fill"></i>
+          </div>
+          <div>
+            <h3 class="syne modal-title-text">Nouveau Patient</h3>
+            <p class="modal-sub-text">Enregistrement dans la base de données</p>
+          </div>
+        </div>
+
+        <ng-container *ngTemplateOutlet="patientFormTpl"></ng-container>
+
+        @if (saveError()) {
+          <div class="save-error"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ saveError() }}</div>
+        }
+
+        <div class="modal-footer-btns">
+          <button class="btn-outline-mc" (click)="closeAdd()" [disabled]="isSaving()">
+            Annuler
+          </button>
+          <button class="btn-primary-mc" (click)="confirmAdd()"
+                  [disabled]="isSaving() || !formValid()">
+            @if (isSaving()) {
+              <span class="spinner-sm"></span> Enregistrement...
+            } @else {
+              <i class="bi bi-check-lg"></i> Enregistrer
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+
+  <!-- ════════════════════════════════════════════════════════
+       MODAL — MODIFIER UN PATIENT
+  ════════════════════════════════════════════════════════ -->
+  @if (showModalEdit()) {
+    <div class="modal-overlay" (click)="closeEdit()">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+
+        <div class="modal-header-custom">
+          <div class="modal-icon-wrap d-flex" style="background:rgba(99,91,255,.12);color:var(--accent2);">
+            <i class="bi bi-pencil-fill"><h3 class="syne modal-title-text">Modifier le Patient</h3></i>
+          </div>
+          <div>
+            
+            <p class="modal-sub-text">Matricule : {{ form.matricule }}</p>
+          </div>
+        </div>
+
+        <ng-container *ngTemplateOutlet="patientFormTpl"></ng-container>
+
+        @if (saveError()) {
+          <div class="save-error"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ saveError() }}</div>
+        }
+
+        <div class="modal-footer-btns">
+          <button class="btn-outline-mc" (click)="closeEdit()" [disabled]="isSaving()">
+            Annuler
+          </button>
+          <button class="btn-save-edit btn-primary-mc" (click)="confirmEdit()"
+                  [disabled]="isSaving() || !formValid()">
+            @if (isSaving()) {
+              <span class="spinner-sm"></span> Modification...
+            } @else {
+              <i class="bi bi-check-lg"></i> Enregistrer les modifications
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+
+  <!-- ════════════════════════════════════════════════════════
+       MODAL — CONFIRMER SUPPRESSION
+  ════════════════════════════════════════════════════════ -->
+  @if (showModalDelete() && patientToDelete()) {
+    <div class="modal-overlay" (click)="closeDelete()">
+      <div class="modal-box modal-delete" (click)="$event.stopPropagation()">
+
+        <!-- Icône danger -->
+        <div style="text-align:center;margin-bottom:20px;">
+          <div class="delete-icon-circle">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          </div>
+        </div>
+
+        <h3 class="syne" style="font-size:18px;font-weight:800;color:var(--primary);text-align:center;margin-bottom:6px;">
+          Confirmer la suppression
+        </h3>
+        <p style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:20px;">
+          Cette action est <strong>irréversible</strong>. Le patient sera définitivement supprimé de la base de données.
+        </p>
+
+        <!-- Récapitulatif du patient à supprimer -->
+        <div class="delete-patient-info">
+          <div class="mc-avatar"
+               style="width:44px;height:44px;border-radius:12px;font-size:16px;"
+               [style.background]="patientToDelete()!.color ?? '#ff4757'">
+            {{ matricule(patientToDelete()!) }}
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:14px;color:var(--primary);">
+              {{ patientToDelete()!.nom }} {{ patientToDelete()!.prenom }}
+            </div>
+            <div style="font-size:12px;color:var(--muted);">
+              {{ patientToDelete()!.id }} · {{ patientToDelete()!.departement }}
+            </div>
+            <div style="font-size:11.5px;color:var(--muted);">
+              Admis le {{ patientToDelete()!.admissionDate }}
+            </div>
+          </div>
+        </div>
+
+        @if (saveError()) {
+          <div class="save-error"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ saveError() }}</div>
+        }
+
+        <div class="modal-footer-btns" style="margin-top:20px;">
+          <button class="btn-outline-mc" (click)="closeDelete()" [disabled]="isSaving()">
+            <i class="bi bi-x-lg"></i> Annuler
+          </button>
+          <button class="btn-delete-confirm" (click)="confirmDelete()" [disabled]="isSaving()">
+            @if (isSaving()) {
+              <span class="spinner-sm"></span> Suppression...
+            } @else {
+              <i class="bi bi-trash3-fill"></i> Oui, supprimer
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+
+  <!-- ════════════════════════════════════════════════════════
+       TEMPLATE FORMULAIRE — réutilisé par Ajouter ET Modifier
+  ════════════════════════════════════════════════════════ -->
+  <ng-template #patientFormTpl>
+    <div class="row g-3 mb-3">
+
+      <!-- Matricule — readonly en modification -->
+      <div class="col-md-4">
+        <label class="form-lbl">
+          Matricule <span style="color:var(--danger)">*</span>
+        </label>
+        <input class="form-ctrl" [(ngModel)]="form.matricule" name="matricule"
+               [readonly]="showModalEdit()"
+               placeholder="Ex: P001"
+               [style.opacity]="showModalEdit() ? '0.6' : '1'">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-lbl">Prénom <span style="color:var(--danger)">*</span></label>
+        <input class="form-ctrl" [(ngModel)]="form.prenom" placeholder="Prénom du patient" name="prenom">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-lbl">Nom <span style="color:var(--danger)">*</span></label>
+        <input class="form-ctrl" [(ngModel)]="form.nom" name="nom" placeholder="Nom de famille">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-lbl">Âge <span style="color:var(--danger)">*</span></label>
+        <input class="form-ctrl" type="number" min="0" max="150"
+               [(ngModel)]="form.age" name="age" placeholder="Âge en années">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-lbl">Sexe</label>
+        <select class="form-ctrl" [(ngModel)]="form.sexe">
+          <option value="M">Masculin</option>
+          <option value="F">Féminin</option>
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-lbl">Groupe sanguin</label>
+        <select class="form-ctrl" [(ngModel)]="form.bloodGroup" >
+          @for (bg of bloodGroups; track bg) { <option [value]="bg">{{ bg }}</option> }
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-lbl">Date d'admission</label>
+        <input class="form-ctrl" type="date" [(ngModel)]="form.admissionDate" name="admissionDate">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-lbl">Service / Département <span style="color:var(--danger)">*</span></label>
+        <select class="form-ctrl" [(ngModel)]="form.departement" >
+          <option value="">— Sélectionner un service —</option>
+          @for (d of departments; track d) { <option [value]="d">{{ d }}</option> }
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-lbl">Médecin traitant</label>
+        <input class="form-ctrl" [(ngModel)]="form.docteur" name="docteur" placeholder="Ex: Dr. Kamga">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-lbl">Statut</label>
+        <select class="form-ctrl" [(ngModel)]="form.status">
+          @for (s of statuses; track s) { <option [value]="s">{{ s }}</option> }
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-lbl">Chambre / Salle</label>
+        <input class="form-ctrl" [(ngModel)]="form.salle" name="salle" placeholder="Ex: 108">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-lbl">Téléphone</label>
+        <input class="form-ctrl" [(ngModel)]="form.phone" name="phone" placeholder="+237...">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-lbl">
+          Allergies
+          <span class="form-hint">séparées par des virgules</span>
+        </label>
+        <input class="form-ctrl" [(ngModel)]="form.allergie" name="allergie"
+               placeholder="Ex: Pénicilline, Aspirine">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-lbl">
+          Antécédents / Conditions
+          <span class="form-hint">séparés par des virgules</span>
+        </label>
+        <input class="form-ctrl" [(ngModel)]="form.condition" name="condition"
+               placeholder="Ex: HTA, Diabète T2">
+      </div>
+
+    </div>
+
+    <!-- Validation visuelle -->
+    @if (!formValid() && (form.nom || form.prenom)) {
+      <div class="form-validation-hint">
+        <i class="bi bi-info-circle-fill me-1"></i>
+        Champs obligatoires : Prénom, Nom, Âge et Service.
+      </div>
+    }
+  </ng-template>
+
+</div>
